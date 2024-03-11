@@ -1,0 +1,14 @@
+Cython==0.29.28
+gym==0.10.5
+imageio==2.9.0
+ipdb==0.13.9
+matplotlib==3.3.2
+networkx
+numpy==1.21.6
+ray==1.8.0
+setproctitle==1.2.2
+tensorflow==2.11.0
+wandb
+pyglet==1.5.28
+tensorboard==2.11.2
+torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/

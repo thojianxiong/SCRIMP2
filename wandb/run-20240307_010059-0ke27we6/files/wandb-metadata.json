@@ -1,0 +1,80 @@
+{
+    "os": "Linux-6.5.0-21-generic-x86_64-with-debian-bookworm-sid",
+    "python": "3.7.16",
+    "heartbeatAt": "2024-03-06T17:01:00.490846",
+    "startedAt": "2024-03-06T17:00:59.173145",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/tho/SCRIMP/driver.py",
+    "codePathLocal": "driver.py",
+    "codePath": "driver.py",
+    "git": {
+        "remote": "git@github.com:thojianxiong/SCRIMP.git",
+        "commit": "4fef5e8db5c9af6ed8796daa3183285444640aed"
+    },
+    "email": "jianxiongtho99@gmail.com",
+    "root": "/home/tho/SCRIMP",
+    "host": "tho-Inspiron-15-5510",
+    "username": "tho",
+    "executable": "/home/tho/anaconda3/envs/scrimp/bin/python",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1290.8988749999999,
+        "min": 400.0,
+        "max": 4900.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1299.945,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 1099.706,
+            "min": 400.0,
+            "max": 4800.0
+        },
+        {
+            "current": 1079.015,
+            "min": 400.0,
+            "max": 4800.0
+        },
+        {
+            "current": 1330.325,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 1327.001,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 863.007,
+            "min": 400.0,
+            "max": 4800.0
+        },
+        {
+            "current": 890.383,
+            "min": 400.0,
+            "max": 4800.0
+        },
+        {
+            "current": 1331.887,
+            "min": 400.0,
+            "max": 5000.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 95.56354522705078,
+            "used": 64.61861419677734
+        }
+    },
+    "memory": {
+        "total": 15.355815887451172
+    }
+}
