@@ -1,5 +1,5 @@
-# SCRIMP
-This is the code for implementing the SCRIMP algorithm :`SCRIMP: Scalable Communication for Reinforcement- and Imitation-Learning-Based Multi-Agent Pathfinding`
+# SCRIMP2
+This is the code for implementing the SCRIMP2 algorithm :`SCRIMP: Scalable Communication for Reinforcement- and Imitation-Learning-Based Multi-Agent Pathfinding 2`
 
 Contains updates by Jian Xiong
 
@@ -8,7 +8,7 @@ Contains updates by Jian Xiong
 Python == 3.7
    ```
     pip install -r requirements.txt
-    pip install --force-reinstall torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/
+    // pip install --force-reinstall torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/
    ```
     
 
@@ -48,6 +48,8 @@ Fully trained SCRIMP model - https://www.dropbox.com/scl/fo/ekhxyt7gm575kfwaerwb
 
 
 ## Authors
+
+Tho Jian Xiong
 
 Yutong Wang
 
