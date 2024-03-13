@@ -608,7 +608,7 @@ class State(object):
         """obtain corresponding action based on x,y operation"""
         return actionDict[direction]
 
-    def task_done(self):
+    def task_done(self):  #FIXME
         """check if all agents on their goal"""
         num_complete = 0
         for i in range(1, len(self.agents) + 1):
@@ -684,13 +684,14 @@ class MAPFEnv(gym.Env):
     metadata = {"render.modes": ["human", "ansi"]}
 
     def __init__(self, num_agents=EnvParameters.N_AGENTS, size=EnvParameters.WORLD_SIZE,
-                 prob=EnvParameters.OBSTACLE_PROB):
+                 prob=EnvParameters.OBSTACLE_PROB, lifelong=False):
         """initialization"""
         self.num_agents = num_agents
         self.observation_size = EnvParameters.FOV_SIZE
         self.SIZE = size  # size of a side of the square grid
         self.PROB = prob  # obstacle density
         self.max_on_goal = 0
+        self.lifelong = lifelong
 
         self.set_world()
         self.action_space = spaces.Tuple([spaces.Discrete(self.num_agents), spaces.Discrete(EnvParameters.N_ACTIONS)])
@@ -863,6 +864,54 @@ class MAPFEnv(gym.Env):
 
         self.set_world()  # back to the initial situation
         return False
+
+    def assign_new_goal(self, agent_id):   #FIXME
+        """set new goal for the agent and remove old goal"""
+        assert (agent_id > 0)
+
+        def get_connected_region(world0, regions_dict, x0, y0):
+            # ensure at the beginning of an episode, all agents and their goal at the same connected region
+            sys.setrecursionlimit(1000000)
+            if (x0, y0) in regions_dict:  # have done
+                return regions_dict[(x0, y0)]
+            visited = set()
+            sx, sy = world0.shape[0], world0.shape[1]
+            work_list = [(x0, y0)]
+            while len(work_list) > 0:
+                (i, j) = work_list.pop()
+                if i < 0 or i >= sx or j < 0 or j >= sy:
+                    continue
+                if world0[i, j] == -1:
+                    continue  # crashes
+                if world0[i, j] > 0:
+                    regions_dict[(i, j)] = visited
+                if (i, j) in visited:
+                    continue
+                visited.add((i, j))
+                work_list.append((i + 1, j))
+                work_list.append((i, j + 1))
+                work_list.append((i - 1, j))
+                work_list.append((i, j - 1))
+            regions_dict[(x0, y0)] = visited
+            return visited
+        
+        world = self.world.state  # static obstacle: -1,empty: 0,agent = positive integer (agent_id)
+        goals = self.world.goals  # empty: 0, goal = positive integer (corresponding to agent_id)
+        agent_pos = self.world.get_pos(agent_id)
+        old_agent_goal = self.world.get_goal(agent_id)
+        '''find random new position for new goal that's not exisiting goal and not an obstacle'''
+        valid_tiles = get_connected_region(world, dict(), agent_pos[0], agent_pos[1])
+        old_x, old_y = old_agent_goal[0], old_agent_goal[1]
+        while True:
+            x, y = random.choice(list(valid_tiles))
+            if math.sqrt((x - old_x)**2 + (y - old_y)**2) < EnvParameters.MIN_DIST_NEW_GOAL:
+                continue  # too close to the old goal           
+            if goals[x, y] == 0 and world[x, y] != -1:
+                self.agent_goals[agent_id - 1] = (x,y)
+                goals[x, y] = agent_id
+                goals[old_x, old_y] = 0
+                break
+        return (x, y)
 
     def astar(self, world, start, goal, robots):
         """A* function for single agent"""
