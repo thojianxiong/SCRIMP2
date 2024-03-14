@@ -684,13 +684,14 @@ class MAPFEnv(gym.Env):
     metadata = {"render.modes": ["human", "ansi"]}
 
     def __init__(self, num_agents=EnvParameters.N_AGENTS, size=EnvParameters.WORLD_SIZE,
-                 prob=EnvParameters.OBSTACLE_PROB, lifelong=False):
+                 prob=EnvParameters.OBSTACLE_PROB, lifelong=EnvParameters.LIFELONG):
         """initialization"""
         self.num_agents = num_agents
         self.observation_size = EnvParameters.FOV_SIZE
         self.SIZE = size  # size of a side of the square grid
         self.PROB = prob  # obstacle density
         self.max_on_goal = 0
+        self.goals_reached = [0 for _ in range(self.num_agents)]  # number of agents that have reached their goals for lifelong
         self.lifelong = lifelong
 
         self.set_world()
@@ -859,6 +860,7 @@ class MAPFEnv(gym.Env):
         """restart a new task"""
         self.num_agents = num_agents
         self.max_on_goal = 0
+        self.goals_reached = [0 for _ in range(self.num_agents)]
         if self.viewer is not None:
             self.viewer = None
 
@@ -1028,7 +1030,10 @@ class MAPFEnv(gym.Env):
 
             else:  # moving
                 if action_status[i] == 1:  # reached goal
-                    rewards[:, i] = EnvParameters.GOAL_REWARD
+                        rewards[:, i] = EnvParameters.GOAL_REWARD
+                    if self.lifelong:
+                        self.goals_reached[i] += 1         # for lifelong learning
+                        self.assign_new_goal(i + 1)     # set new goal for the agent
                 elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
                     rewards[:, i] = EnvParameters.COLLISION_COST
                     num_collide += 1
@@ -1047,12 +1052,14 @@ class MAPFEnv(gym.Env):
             on_goals[i] = self.world.get_pos(i + 1) == self.world.get_goal(i + 1)
 
         done, num_on_goal = self.world.task_done()
-        if num_on_goal > self.max_on_goal:
-            self.max_on_goal = num_on_goal
+        if num_on_goal > self.max_on_goal:      # max_on_goal is the max number of agents on goals after any episode
+            self.max_on_goal = num_on_goal      # num_on_goal is the number of agents on goals currently
         if num_step >= EnvParameters.EPISODE_LEN - 1:
             done = True
+        if self.lifelong:
+            done = True if num_step >= EnvParameters.EPISODE_LEN - 1 else False     # terminating condition for lifelong is if eps length reached
         return obs, vector, rewards, done, next_valid_actions, on_goals, blockings, valid_actions, num_blockings, \
-            leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions
+                leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions, self.goals_reached
 
     def create_rectangle(self, x, y, width, height, fill, permanent=False):
         """draw a rectangle to represent an agent"""

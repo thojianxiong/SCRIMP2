@@ -1,0 +1,40 @@
+id is:veq5scu2
+Launching wandb...
+/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/cuda/amp/grad_scaler.py:115: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+  warnings.warn("torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.")
+[36m(pid=60423)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60423)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60418)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60418)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60424)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60424)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60422)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60422)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60419)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60419)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60420)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60420)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60421)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60421)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m(pid=60425)[39m /home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/torch/amp/autocast_mode.py:198: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+[36m(pid=60425)[39m   warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+[36m[1m(scheduler +21s)[39m[22m Tip: use `ray status` to view detailed cluster status. To disable these messages, set RAY_SCHEDULER_EVENTS=0.
+[33m[1m(scheduler +21s)[39m[22m Warning: The following resource request cannot be scheduled right now: {'CPU': 1.0}. This is likely due to all cluster resources being claimed by actors. Consider creating fewer actors or adding more nodes to this Ray cluster.
+2024-03-13 16:34:11,328	WARNING worker.py:1228 -- The actor or task with ID ffffffffffffffff9c8454f90384d6b801d07bac01000000 cannot be scheduled right now. You can ignore this message if this Ray cluster is expected to auto-scale or if you specified a runtime_env for this actor or task, which may take time to install.  Otherwise, this is likely due to all cluster resources being claimed by actors. To resolve the issue, consider creating fewer actors or increasing the resources available to this Ray cluster.
+Required resources for this actor or task: {CPU: 1.000000}
+Available resources on this node: {0.000000/8.000000 CPU, 327180720.068359 GiB/327180720.068359 GiB memory, 163590359.960938 GiB/163590359.960938 GiB object_store_memory, 1.000000/1.000000 node:172.21.130.184}
+In total there are 0 pending tasks and 8 pending actors on this node.
+Traceback (most recent call last):
+  File "driver.py", line 388, in <module>
+    main()
+  File "driver.py", line 294, in main
+    "reward": eval_performance_dict['per_r']}
+UnboundLocalError: local variable 'eval_performance_dict' referenced before assignment
+Traceback (most recent call last):
+  File "driver.py", line 388, in <module>
+    main()
+  File "driver.py", line 294, in main
+    "reward": eval_performance_dict['per_r']}
+UnboundLocalError: local variable 'eval_performance_dict' referenced before assignment
+CTRL-C pressed. killing remote workers
+Saving Final Model !

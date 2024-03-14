@@ -17,7 +17,7 @@ from util import set_global_seeds, write_to_tensorboard, write_to_wandb, make_gi
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 ray.init(num_gpus=SetupParameters.NUM_GPU)
-print("Welcome to SCRIMP on MAPF!\n")
+print("Welcome to SCRIMP2 on MAPF!\n")
 
 
 def main():

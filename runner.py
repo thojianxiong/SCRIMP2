@@ -271,7 +271,7 @@ class Runner(object):
                 actions[i] = self.imitation_env.world.get_action(direction)
             mb_actions.append(actions)
 
-            obs, vector, rewards, done, _, on_goal, _, valid_actions, _, _, _, _, _, _, _ = \
+            obs, vector, rewards, done, _, on_goal, _, valid_actions, _, _, _, _, _, _, _, goals_reached = \
                 self.imitation_env.joint_step(actions, 0, model='imitation', pre_value=None, input_state=None,
                                               ps=None, no_reward=None, message=None, episodic_buffer=None)
 

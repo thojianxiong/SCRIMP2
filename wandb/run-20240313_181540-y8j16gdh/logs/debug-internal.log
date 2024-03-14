@@ -1,0 +1,90 @@
+2024-03-13 18:15:40,694 INFO    StreamThr :70002 [internal.py:wandb_internal():89] W&B internal server running at pid: 70002, started at: 2024-03-13 18:15:40.693815
+2024-03-13 18:15:40,696 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: status
+2024-03-13 18:15:40,702 INFO    WriterThread:70002 [datastore.py:open_for_write():87] open: /home/tho/SCRIMP2/wandb/run-20240313_181540-y8j16gdh/run-y8j16gdh.wandb
+2024-03-13 18:15:40,702 DEBUG   SenderThread:70002 [sender.py:send():382] send: header
+2024-03-13 18:15:40,715 DEBUG   SenderThread:70002 [sender.py:send():382] send: run
+2024-03-13 18:15:40,722 INFO    SenderThread:70002 [sender.py:_maybe_setup_resume():764] checking resume status for jianxiongtho/MAPF/y8j16gdh
+2024-03-13 18:15:45,717 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:15:50,720 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:15:55,721 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:00,723 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:05,725 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:10,727 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:15,728 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:20,730 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:25,732 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:30,735 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:35,737 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:40,739 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:45,741 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:50,743 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:16:55,746 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:17:00,748 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:17:05,750 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:17:10,753 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: cancel
+2024-03-13 18:17:10,753 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: cancel
+2024-03-13 18:17:12,766 DEBUG   HandlerThread:70002 [handler.py:handle_request():146] handle_request: shutdown
+2024-03-13 18:17:12,766 INFO    HandlerThread:70002 [handler.py:finish():869] shutting down handler
+2024-03-13 18:17:13,754 INFO    WriterThread:70002 [datastore.py:close():296] close: /home/tho/SCRIMP2/wandb/run-20240313_181540-y8j16gdh/run-y8j16gdh.wandb
+2024-03-13 18:17:43,982 INFO    SenderThread:70002 [retry.py:__call__():172] Retry attempt failed:
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 207, in _new_conn
+    socket_options=self.socket_options,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/util/connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/socket.py", line 752, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 803, in urlopen
+    **response_kw,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 492, in _make_request
+    raise new_e
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 468, in _make_request
+    self._validate_conn(conn)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 1097, in _validate_conn
+    conn.connect()
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 611, in connect
+    self.sock = sock = self._new_conn()
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 210, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x76dd4dcbe050>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/adapters.py", line 497, in send
+    chunked=chunked,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 846, in urlopen
+    method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/util/retry.py", line 515, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x76dd4dcbe050>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 369, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 58, in execute
+    request = self.session.post(self.url, **post_args)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 637, in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x76dd4dcbe050>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
+2024-03-13 18:17:43,986 DEBUG   SenderThread:70002 [sender.py:send():391] Record cancelled: run
+2024-03-13 18:17:43,987 INFO    SenderThread:70002 [sender.py:finish():1572] shutting down sender

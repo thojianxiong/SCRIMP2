@@ -172,7 +172,7 @@ def one_step(env, one_episode_perf, actions, pre_block, model, pre_value, input_
     """run one step"""
     train_valid = np.zeros((num_agent, EnvParameters.N_ACTIONS), dtype=np.float32)
     obs, vector, rewards, done, next_valid_actions, on_goal, blockings, valid_actions, num_blockings, leave_goals, \
-        num_on_goal, max_on_goal, num_collide, action_status, modify_actions \
+        num_on_goal, max_on_goal, num_collide, action_status, modify_actions, goals_reached \
         = env.joint_step(actions, one_episode_perf['num_step'], model, pre_value,
                          input_state, ps, no_reward, message, episodic_buffer)
 

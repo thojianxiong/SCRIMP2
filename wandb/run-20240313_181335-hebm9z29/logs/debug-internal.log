@@ -1,0 +1,96 @@
+2024-03-13 18:13:35,940 INFO    StreamThr :67626 [internal.py:wandb_internal():89] W&B internal server running at pid: 67626, started at: 2024-03-13 18:13:35.939673
+2024-03-13 18:13:35,941 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: status
+2024-03-13 18:13:35,948 INFO    WriterThread:67626 [datastore.py:open_for_write():87] open: /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/run-hebm9z29.wandb
+2024-03-13 18:13:35,948 DEBUG   SenderThread:67626 [sender.py:send():382] send: header
+2024-03-13 18:13:35,961 DEBUG   SenderThread:67626 [sender.py:send():382] send: run
+2024-03-13 18:13:35,968 INFO    SenderThread:67626 [sender.py:_maybe_setup_resume():764] checking resume status for jianxiongtho/MAPF/hebm9z29
+2024-03-13 18:13:40,963 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:13:45,964 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:13:50,966 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:13:55,967 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:00,969 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:05,971 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:10,973 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:15,975 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:20,976 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:25,978 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:30,980 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:35,982 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:40,983 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:45,985 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:50,986 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:55,988 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: keepalive
+2024-03-13 18:14:59,904 DEBUG   HandlerThread:67626 [handler.py:handle_request():146] handle_request: shutdown
+2024-03-13 18:14:59,904 INFO    HandlerThread:67626 [handler.py:finish():869] shutting down handler
+2024-03-13 18:14:59,977 INFO    WriterThread:67626 [datastore.py:close():296] close: /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/run-hebm9z29.wandb
+2024-03-13 18:15:39,593 INFO    SenderThread:67626 [retry.py:__call__():172] Retry attempt failed:
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 207, in _new_conn
+    socket_options=self.socket_options,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/util/connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/socket.py", line 752, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 803, in urlopen
+    **response_kw,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 492, in _make_request
+    raise new_e
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 468, in _make_request
+    self._validate_conn(conn)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 1097, in _validate_conn
+    conn.connect()
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 611, in connect
+    self.sock = sock = self._new_conn()
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connection.py", line 210, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x7e819f936c50>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/adapters.py", line 497, in send
+    chunked=chunked,
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/connectionpool.py", line 846, in urlopen
+    method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/urllib3/util/retry.py", line 515, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7e819f936c50>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 369, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 58, in execute
+    request = self.session.post(self.url, **post_args)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 637, in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/tho/anaconda3/envs/scrimp/lib/python3.7/site-packages/requests/adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7e819f936c50>: Failed to resolve 'api.wandb.ai' ([Errno -3] Temporary failure in name resolution)"))
+2024-03-13 18:29:03,523 INFO    SenderThread:67626 [dir_watcher.py:__init__():211] watching files in: /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/files
+2024-03-13 18:29:03,523 INFO    SenderThread:67626 [sender.py:_start_run_threads():1139] run started: hebm9z29 with start time 1710324815.939705
+2024-03-13 18:29:03,523 INFO    SenderThread:67626 [sender.py:finish():1572] shutting down sender
+2024-03-13 18:29:03,523 INFO    SenderThread:67626 [dir_watcher.py:finish():358] shutting down directory watcher
+2024-03-13 18:29:04,524 INFO    SenderThread:67626 [dir_watcher.py:finish():388] scan: /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/files
+2024-03-13 18:29:04,524 INFO    SenderThread:67626 [dir_watcher.py:finish():402] scan save: /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/files/config.yaml config.yaml
+2024-03-13 18:29:04,524 INFO    SenderThread:67626 [file_pusher.py:finish():175] shutting down file pusher
+2024-03-13 18:29:04,525 INFO    SenderThread:67626 [file_pusher.py:join():181] waiting for file pusher
+2024-03-13 18:29:05,519 INFO    wandb-upload_0:67626 [upload_job.py:push():131] Uploaded file /home/tho/SCRIMP2/wandb/run-20240313_181335-hebm9z29/files/config.yaml
+2024-03-13 18:29:06,027 INFO    SenderThread:67626 [file_stream.py:finish():595] file stream finish called
+2024-03-13 18:29:07,466 INFO    SenderThread:67626 [file_stream.py:finish():599] file stream finish is done
