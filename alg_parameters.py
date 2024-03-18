@@ -91,9 +91,9 @@ class RecordingParameters:
     EVAL_INTERVAL = TrainingParameters.N_ENVS * TrainingParameters.N_STEPS  # interval of evaluating training model0
     EVAL_EPISODES = 1  # number of episode used in evaluation
     RECORD_BEST = False
-    MODEL_PATH = './models' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + TIME
-    GIFS_PATH = './gifs' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + TIME
-    SUMMARY_PATH = './summaries' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + TIME
+    MODEL_PATH = './models' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + ' ' + TIME
+    GIFS_PATH = './gifs' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + ' ' + TIME
+    SUMMARY_PATH = './summaries' + '/' + EXPERIMENT_PROJECT + '/' + EXPERIMENT_NAME + ' ' + TIME
     TXT_NAME = 'alg.txt'
     LOSS_NAME = ['all_loss', 'policy_loss', 'policy_entropy', 'critic_loss_in', 'critic_loss_ex', 'valid_loss',
                  'blocking_loss', 'clipfrac',
