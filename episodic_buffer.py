@@ -80,7 +80,7 @@ class EpisodicBuffer(object):
             if min_dist[:, i] >= IntrinsicParameters.ADD_THRESHOLD:
                 self.add(new_xy[i], i)
 
-        return processed_rewards, reward_count, bonus, min_dist
+        return processed_rewards, reward_count, bonus, min_dist     #processed_rewards, be_rewarded, intrinsic_rewards, min_dist
 
     def image_if_reward(self, new_xy, done, on_goal):
         """similar to if_reward but it is only used when breaking a tie"""

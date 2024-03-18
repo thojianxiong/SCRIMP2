@@ -18,14 +18,14 @@ set_global_seeds(SetupParameters.SEED)
 
 
 def one_step(env0, actions, model0, pre_value, input_state, ps, one_episode_perf, message, episodic_buffer0):
-    obs, vector, reward, done, _, on_goal, _, _, _, _, _, max_on_goal, num_collide, _, modify_actions = env0.joint_step(
+    obs, vector, reward, done, _, on_goal, _, _, _, _, _, max_on_goal, num_collide, _, modify_actions, goals_reached = env0.joint_step(
         actions, one_episode_perf['episode_len'], model0, pre_value, input_state, ps, no_reward=False, message=message,
         episodic_buffer=episodic_buffer0)
 
     one_episode_perf['collide'] += num_collide
     vector[:, :, -1] = modify_actions
     one_episode_perf['episode_len'] += 1
-    return reward, obs, vector, done, one_episode_perf, max_on_goal, on_goal
+    return reward, obs, vector, done, one_episode_perf, max_on_goal, on_goal, goals_reached
 
 
 def evaluate(eval_env, model0, device, episodic_buffer0, num_agent, save_gif0):
@@ -50,7 +50,7 @@ def evaluate(eval_env, model0, device, episodic_buffer0, num_agent, save_gif0):
         actions, hidden_state, v_all, ps, message = model0.final_evaluate(obs, vector, hidden_state, message, num_agent,
                                                                           greedy=False)
 
-        rewards, obs, vector, done, one_episode_perf, max_on_goals, on_goal = one_step(eval_env, actions, model0, v_all,
+        rewards, obs, vector, done, one_episode_perf, max_on_goals, on_goal, goals_reached = one_step(eval_env, actions, model0, v_all,
                                                                                        hidden_state, ps,
                                                                                        one_episode_perf, message,
                                                                                        episodic_buffer0)

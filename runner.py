@@ -75,7 +75,7 @@ class Runner(object):
                 mb_done.append(self.done)
 
                 rewards, self.valid_actions, self.obs, self.vector, self.train_valid, self.done, blockings, \
-                    num_on_goals, self.one_episode_perf, max_on_goals, action_status, modify_actions, on_goal \
+                    num_on_goals, self.one_episode_perf, max_on_goals, action_status, modify_actions, on_goal, goals_reached \
                     = one_step(self.env, self.one_episode_perf, actions, pre_block, self.local_model, values_all,
                                self.hidden_state, ps, self.episodic_buffer.no_reward, self.message, self.episodic_buffer,
                                self.num_agent)
@@ -104,11 +104,14 @@ class Runner(object):
                 self.one_episode_perf['ex_reward'] += np.sum(rewards)
                 self.one_episode_perf['in_reward'] += np.sum(intrinsic_rewards)
                 if self.one_episode_perf['num_step'] == EnvParameters.EPISODE_LEN // 2:
-                    performance_dict['per_half_goals'].append(num_on_goals)
+                    if EnvParameters.LIFELONG:
+                        performance_dict['per_half_goals'].append(goals_reached)
+                    else:
+                        performance_dict['per_half_goals'].append(num_on_goals)
 
                 if self.done:
                     performance_dict = update_perf(self.one_episode_perf, performance_dict, num_on_goals, max_on_goals,
-                                                   self.num_agent)
+                                                   self.num_agent, goals_reached)
                     self.one_episode_perf = {'num_step': 0, 'episode_reward': 0, 'invalid': 0, 'block': 0,
                                              'num_leave_goal': 0, 'wrong_blocking': 0, 'num_collide': 0,
                                              'reward_count': 0, 'ex_reward': 0, 'in_reward': 0}

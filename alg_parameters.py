@@ -4,6 +4,7 @@ import datetime
 
 
 class EnvParameters:
+    LIFELONG = False 
     N_AGENTS = 8  # number of agents used in training
     N_ACTIONS = 5
     EPISODE_LEN = 512 if LIFELONG else 256  # maximum episode length in training
@@ -14,8 +15,7 @@ class EnvParameters:
     IDLE_COST = -0.2 if LIFELONG else -0.3      # -0.3 for BOTH
     GOAL_REWARD = 2.0 if LIFELONG else 0.0   # 0 for SCRIMP, +5 for PRIMAL2
     COLLISION_COST = -2    # -2 for BOTH 
-    BLOCKING_COST = 0.0 if LIFELONG else -1
-    LIFELONG = False   
+    BLOCKING_COST = 0.0 if LIFELONG else -1      
     ONLINE_FACTOR = 10  # multiple of number of agents of goals to finish
     MIN_DIST_NEW_GOAL = 5  # minimum distance between new goal and old goal
 
@@ -33,7 +33,7 @@ class TrainingParameters:
     VALID_COEF = 0.5
     BLOCK_COEF = 0.5
     N_EPOCHS = 10
-    N_ENVS = 16  # number of processes 8 for training 1 for debug
+    N_ENVS = 1  # number of processes 8 for training 1 for debug
     N_MAX_STEPS = 3e7  # maximum number of time steps used in training (1/2e7 for training,3e7 for debug)
     N_STEPS = 2 ** 10  # number of time steps per process per data collection (2**8 for training, 2**10 for debug)
     MINIBATCH_SIZE = int(2 ** 10)   # same as N_STEPS
@@ -70,15 +70,16 @@ class IntrinsicParameters:
 class SetupParameters:
     SEED = 1234
     USE_GPU_LOCAL = False
-    USE_GPU_GLOBAL = True
+    USE_GPU_GLOBAL = False
     NUM_GPU = 1
 
 
 class RecordingParameters:
     RETRAIN = False
-    WANDB =  True
+    WANDB =  False
     TENSORBOARD = False
     TXT_WRITER =  True
+    MAKE_GIF = False
     ENTITY = 'jianxiongtho'
     TIME = datetime.datetime.now().strftime('%d-%m-%y%H%M')
     EXPERIMENT_PROJECT = 'MAPF'
@@ -105,7 +106,6 @@ all_args = {'N_AGENTS': EnvParameters.N_AGENTS, 'N_ACTIONS': EnvParameters.N_ACT
             'OBSTACLE_PROB': EnvParameters.OBSTACLE_PROB,
             'ACTION_COST': EnvParameters.ACTION_COST,
             'IDLE_COST': EnvParameters.IDLE_COST, 'GOAL_REWARD': EnvParameters.GOAL_REWARD, 
-            'NEW_GOAL_REWARD': EnvParameters.NEW_GOAL_REWARD,
             'COLLISION_COST': EnvParameters.COLLISION_COST,
             'BLOCKING_COST': EnvParameters.BLOCKING_COST,
             'LIFELONG': EnvParameters.LIFELONG,

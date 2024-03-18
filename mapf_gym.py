@@ -1030,7 +1030,7 @@ class MAPFEnv(gym.Env):
 
             else:  # moving
                 if action_status[i] == 1:  # reached goal
-                        rewards[:, i] = EnvParameters.GOAL_REWARD
+                    rewards[:, i] = EnvParameters.GOAL_REWARD
                     if self.lifelong:
                         self.goals_reached[i] += 1         # for lifelong learning
                         self.assign_new_goal(i + 1)     # set new goal for the agent
