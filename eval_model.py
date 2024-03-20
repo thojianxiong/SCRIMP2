@@ -55,7 +55,10 @@ def evaluate(eval_env, model0, device, episodic_buffer0, num_agent, save_gif0):
                                                                                        one_episode_perf, message,
                                                                                        episodic_buffer0)
         new_xy = eval_env.get_positions()
-        processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, on_goal)
+        if EnvParameters.LIFELONG:
+            processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, goals_reached)
+        else:
+            processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, on_goal)
 
         vector[:, :, 3] = rewards
         vector[:, :, 4] = intrinsic_reward
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     print('Launching wandb...\n')
     save_gif = True
 
-    # start evaluation
+    # start evaluation          # FIXME to show goals_reached 
     for k in CASE:
         # remember to modify the corresponding code (size,prob) in the 'mapf_gym.py'
         env = MAPFEnv(num_agents=k[0], size=k[1], prob=k[2])

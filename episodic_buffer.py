@@ -53,7 +53,7 @@ class EpisodicBuffer(object):
         self.xy_memory[0] = xy_position
         self._count += 1
 
-    def if_reward(self, new_xy, rewards, done, on_goal):
+    def if_reward(self, new_xy, rewards, done, on_goal):    #FIXME change on_goal to goals_reached
         """familiarity between the current position and the ones from the buffer"""
         processed_rewards = np.zeros((1, self.num_agent))
         bonus = np.zeros((1, self.num_agent))

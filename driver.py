@@ -371,16 +371,27 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
                         if not os.path.exists(RecordingParameters.GIFS_PATH):
                             os.makedirs(RecordingParameters.GIFS_PATH)
                         images = np.array(episode_frames)
-                        make_gif(images,
+                        if EnvParameters.LIFELONG:
+                            make_gif(images,
                                 '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
                                     RecordingParameters.GIFS_PATH,
                                     curr_steps, one_episode_perf[
                                         'episode_reward'],
-                                    num_on_goals, greedy))
+                                    goals_reached, greedy))
+                        else:
+                            make_gif(images,
+                                    '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
+                                        RecordingParameters.GIFS_PATH,
+                                        curr_steps, one_episode_perf[
+                                            'episode_reward'],
+                                        num_on_goals, greedy))
                         save_gif = False
-
-                eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, num_on_goals, max_on_goals,
-                                                    num_agent, goals_reached)
+                if EnvParameters.LIFELONG:
+                    eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, goals_reached, max_on_goals,
+                                                        num_agent, goals_reached)
+                else:
+                    eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, num_on_goals, max_on_goals,
+                                                        num_agent, goals_reached)
 
     # average performance of multiple episodes
     for i in eval_performance_dict.keys():
