@@ -857,7 +857,7 @@ class MAPFEnv(gym.Env):
             regions_dict[(x0, y0)] = visited
             return visited
 
-        if EnvParameters.LIFELONG:
+        if EnvParameters.PRIMAL_MAZE:
             world = self.maze_generator(env_size=self.SIZE, wall_components=(1, 8), obstacle_density=(self.PROB[0], self.PROB[1]), go_straight=0.8)
         else:
             prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],

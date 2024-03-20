@@ -16,7 +16,7 @@ class EnvParameters:
     GOAL_REWARD = 2.0 if LIFELONG else 0.0   # 0 for SCRIMP, +5 for PRIMAL2
     COLLISION_COST = -2    # -2 for BOTH 
     BLOCKING_COST = 0.0 if LIFELONG else -1      
-    ONLINE_FACTOR = 10  # multiple of number of agents of goals to finish
+    PRIMAL_MAZE = True
     MIN_DIST_NEW_GOAL = 5  # minimum distance between new goal and old goal
 
 
