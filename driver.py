@@ -104,11 +104,11 @@ def main():
                 net_weights_id = ray.put(net_weights)
                 curr_steps_id = ray.put(curr_steps)
                 demon_probs = np.random.rand()
-                if demon_probs < TrainingParameters.DEMONSTRATION_PROB:
+                if demon_probs < TrainingParameters.DEMONSTRATION_PROB:                 # IMITATION LEARNING
                     demon = True
                     for i, env in enumerate(envs):
                         job_list.append(env.imitation.remote(net_weights_id, curr_steps_id))
-                else:
+                else:                                                                   # REINFORCEMENT LEARNING
                     demon = False
                     for i, env in enumerate(envs):
                         job_list.append(env.run.remote(net_weights_id, curr_steps_id))
@@ -377,7 +377,7 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
                                     RecordingParameters.GIFS_PATH,
                                     curr_steps, one_episode_perf[
                                         'episode_reward'],
-                                    goals_reached, greedy))
+                                    sum(goals_reached), greedy))
                         else:
                             make_gif(images,
                                     '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
@@ -386,12 +386,9 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
                                             'episode_reward'],
                                         num_on_goals, greedy))
                         save_gif = False
-                if EnvParameters.LIFELONG:
-                    eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, goals_reached, max_on_goals,
-                                                        num_agent, goals_reached)
-                else:
-                    eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, num_on_goals, max_on_goals,
-                                                        num_agent, goals_reached)
+                #update_perf uses goals_reached if lifelong else num_on_goals
+                eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, num_on_goals, max_on_goals,
+                                                    num_agent, goals_reached)
 
     # average performance of multiple episodes
     for i in eval_performance_dict.keys():

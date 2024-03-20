@@ -294,10 +294,16 @@ class State(object):
                 if j in agent_indexes and j != i:
                     vector[:, j, -1] = new_action[j]
             # generate image observation
-            new_xy, on_goal = self.imag_xy_position(moved_position)
-            rewards = self.imag_reward(new_action, new_status, on_goal, moved_position, actions, i, agent_indexes,
-                                       agent_status)
-            intrinsic_reward, min_dist = episodic_buffer.image_if_reward(new_xy, False, on_goal)
+            if EnvParameters.LIFELONG:      #FIXME on_goal is given as goals_reached if EnvParameters.LIFELONG is True
+                new_xy, on_goal = self.imag_xy_position(moved_position)
+                rewards = self.imag_reward(new_action, new_status, on_goal, moved_position, actions, i, agent_indexes,
+                                        agent_status)
+                intrinsic_reward, min_dist = episodic_buffer.image_if_reward(new_xy, False, on_goal)
+            else:
+                new_xy, on_goal = self.imag_xy_position(moved_position)
+                rewards = self.imag_reward(new_action, new_status, on_goal, moved_position, actions, i, agent_indexes,
+                                        agent_status)
+                intrinsic_reward, min_dist = episodic_buffer.image_if_reward(new_xy, False, on_goal)
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist
@@ -608,7 +614,7 @@ class State(object):
         """obtain corresponding action based on x,y operation"""
         return actionDict[direction]
 
-    def task_done(self):  #FIXME
+    def task_done(self): 
         """check if all agents on their goal"""
         num_complete = 0
         for i in range(1, len(self.agents) + 1):
@@ -684,7 +690,7 @@ class MAPFEnv(gym.Env):
     metadata = {"render.modes": ["human", "ansi"]}
 
     def __init__(self, num_agents=EnvParameters.N_AGENTS, size=EnvParameters.WORLD_SIZE,
-                 prob=EnvParameters.OBSTACLE_PROB, lifelong=EnvParameters.LIFELONG):
+                 prob=EnvParameters.OBSTACLE_PROB):
         """initialization"""
         self.num_agents = num_agents
         self.observation_size = EnvParameters.FOV_SIZE
@@ -692,7 +698,6 @@ class MAPFEnv(gym.Env):
         self.PROB = prob  # obstacle density
         self.max_on_goal = 0
         self.goals_reached = [0 for _ in range(self.num_agents)]  # number of agents that have reached their goals for lifelong
-        self.lifelong = lifelong
 
         self.set_world()
         self.action_space = spaces.Tuple([spaces.Discrete(self.num_agents), spaces.Discrete(EnvParameters.N_ACTIONS)])
@@ -1116,7 +1121,7 @@ class MAPFEnv(gym.Env):
             else:  # moving
                 if action_status[i] == 1:  # reached goal
                     rewards[:, i] = EnvParameters.GOAL_REWARD
-                    if self.lifelong:
+                    if EnvParameters.LIFELONG:
                         self.goals_reached[i] += 1         # for lifelong learning
                         self.assign_new_goal(i + 1)     # set new goal for the agent
                 elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
@@ -1141,7 +1146,7 @@ class MAPFEnv(gym.Env):
             self.max_on_goal = num_on_goal      # num_on_goal is the number of agents on goals currently
         if num_step >= EnvParameters.EPISODE_LEN - 1:
             done = True
-        if self.lifelong:
+        if EnvParameters.LIFELONG:
             done = True if num_step >= EnvParameters.EPISODE_LEN - 1 else False     # terminating condition for lifelong is if eps length reached
         return obs, vector, rewards, done, next_valid_actions, on_goals, blockings, valid_actions, num_blockings, \
                 leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions, self.goals_reached

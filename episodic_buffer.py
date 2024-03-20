@@ -53,7 +53,7 @@ class EpisodicBuffer(object):
         self.xy_memory[0] = xy_position
         self._count += 1
 
-    def if_reward(self, new_xy, rewards, done, on_goal):    #FIXME change on_goal to goals_reached
+    def if_reward(self, new_xy, rewards, done, on_goal):    #FIXME on_goal is given as goals_reached if EnvParameters.LIFELONG is True
         """familiarity between the current position and the ones from the buffer"""
         processed_rewards = np.zeros((1, self.num_agent))
         bonus = np.zeros((1, self.num_agent))
@@ -67,8 +67,13 @@ class EpisodicBuffer(object):
             novelty = np.asarray(dist < random.randint(1, IntrinsicParameters.K), dtype=np.int64)
 
             aggregated = np.max(novelty)
-            bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
+            
+            if EnvParameters.LIFELONG:
+                bonus[:, i] = np.asarray([0.0 if done or (on_goal[i] > 0) else self.surrogate2 - aggregated])
+            else:
+                bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
             scale_factor = self.surrogate1
+
             if self.no_reward:
                 scale_factor = 0.0
             intrinsic_reward = scale_factor * bonus[:, i]
