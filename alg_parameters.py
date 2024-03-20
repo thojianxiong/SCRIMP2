@@ -4,7 +4,7 @@ import datetime
 
 
 class EnvParameters:
-    LIFELONG = False 
+    LIFELONG = True
     N_AGENTS = 8  # number of agents used in training
     N_ACTIONS = 5
     EPISODE_LEN = 512 if LIFELONG else 256  # maximum episode length in training
@@ -79,7 +79,7 @@ class RecordingParameters:
     WANDB =  False
     TENSORBOARD = False
     TXT_WRITER =  True
-    MAKE_GIF = False
+    MAKE_GIF = True
     ENTITY = 'jianxiongtho'
     TIME = datetime.datetime.now().strftime('%d-%m-%y%H%M')
     EXPERIMENT_PROJECT = 'MAPF'

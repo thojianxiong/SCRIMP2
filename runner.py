@@ -280,7 +280,7 @@ class Runner(object):
 
             vector[:, :, -1] = actions
             new_xy = self.imitation_env.get_positions()
-            _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)
+            _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)    #FIXME change on_goal to goals_reached
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist

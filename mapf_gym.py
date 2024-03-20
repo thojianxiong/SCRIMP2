@@ -698,35 +698,35 @@ class MAPFEnv(gym.Env):
         self.action_space = spaces.Tuple([spaces.Discrete(self.num_agents), spaces.Discrete(EnvParameters.N_ACTIONS)])
         self.viewer = None
 
-    def is_connected(self, world0):
-        """check if each agent's start position and goal position are sampled from the same connected region"""
-        sys.setrecursionlimit(10000)
-        world0 = world0.copy()
+    # def is_connected(self, world0):
+    #     """check if each agent's start position and goal position are sampled from the same connected region"""
+    #     sys.setrecursionlimit(10000)
+    #     world0 = world0.copy()
 
-        def first_free(world):
-            for x in range(world.shape[0]):
-                for y in range(world.shape[1]):
-                    if world[x, y] == 0:
-                        return x, y
+    #     def first_free(world):
+    #         for x in range(world.shape[0]):
+    #             for y in range(world.shape[1]):
+    #                 if world[x, y] == 0:
+    #                     return x, y
 
-        def flood_fill(world, k, g):
-            sx, sy = world.shape[0], world.shape[1]
-            if k < 0 or k >= sx or g < 0 or g >= sy:  # out of boundaries
-                return
-            if world[k, g] == -1:
-                return  # obstacles
-            world[k, g] = -1
-            flood_fill(world, k + 1, g)
-            flood_fill(world, k, g + 1)
-            flood_fill(world, k - 1, g)
-            flood_fill(world, k, g - 1)
+    #     def flood_fill(world, k, g):
+    #         sx, sy = world.shape[0], world.shape[1]
+    #         if k < 0 or k >= sx or g < 0 or g >= sy:  # out of boundaries
+    #             return
+    #         if world[k, g] == -1:
+    #             return  # obstacles
+    #         world[k, g] = -1
+    #         flood_fill(world, k + 1, g)
+    #         flood_fill(world, k, g + 1)
+    #         flood_fill(world, k - 1, g)
+    #         flood_fill(world, k, g - 1)
 
-        i, j = first_free(world0)
-        flood_fill(world0, i, j)
-        if np.any(world0 == 0):
-            return False
-        else:
-            return True
+    #     i, j = first_free(world0)
+    #     flood_fill(world0, i, j)
+    #     if np.any(world0 == 0):
+    #         return False
+    #     else:
+    #         return True
 
     def get_obstacle_map(self):
         """get obstacle map"""
@@ -746,6 +746,88 @@ class MAPFEnv(gym.Env):
             result.append(self.world.get_pos(i))
         return result
 
+    def maze_generator(self, env_size=(10, 70), wall_components=(1, 8), obstacle_density=None, go_straight=0.8):
+        min_size, max_size = env_size
+        min_component, max_component = wall_components
+        num_components = np.random.randint(low=min_component, high=max_component + 1)
+        assert min_size > 5
+
+        if obstacle_density is None:
+            obstacle_density = [0, 1]
+
+        def maze(h, w, total_density=0):
+            # Only odd shapes
+            assert h > 0 and w > 0, "You are giving non-positive width and height"
+            shape = ((h // 2) * 2 + 3, (w // 2) * 2 + 3)
+            # Adjust num_components and density relative to maze world_size
+            # density    = int(density * ((shape[0] // 2) * (shape[1] // 2))) // 20 # world_size of components
+            density = int(shape[0] * shape[1] * total_density // num_components) if num_components != 0 else 0
+
+            # Build actual maze
+            Z = np.zeros(shape, dtype='int')
+            # Fill borders
+            Z[0, :] = Z[-1, :] = 1
+            Z[:, 0] = Z[:, -1] = 1
+            # Make aisles
+            for i in range(density):
+                x, y = np.random.randint(0, shape[1] // 2) * 2, np.random.randint(0, shape[
+                    0] // 2) * 2  # pick a random position
+                Z[y, x] = 1
+                last_dir = 0
+                for j in range(num_components):
+                    neighbours = []
+                    if x > 1:             neighbours.append((y, x - 2))
+                    if x < shape[1] - 2:  neighbours.append((y, x + 2))
+                    if y > 1:             neighbours.append((y - 2, x))
+                    if y < shape[0] - 2:  neighbours.append((y + 2, x))
+                    if len(neighbours):
+                        if last_dir == 0:
+                            y_, x_ = neighbours[np.random.randint(0, len(neighbours))]
+                            if Z[y_, x_] == 0:
+                                last_dir = (y_ - y, x_ - x)
+                                Z[y_, x_] = 1
+                                Z[y_ + (y - y_) // 2, x_ + (x - x_) // 2] = 1
+                                x, y = x_, y_
+                        else:
+                            index_F = -1
+                            index_B = -1
+                            diff = []
+                            for k in range(len(neighbours)):
+                                diff.append((neighbours[k][0] - y, neighbours[k][1] - x))
+                                if diff[k] == last_dir:
+                                    index_F = k
+                                elif diff[k][0] + last_dir[0] == 0 and diff[k][1] + last_dir[1] == 0:
+                                    index_B = k
+                            assert (index_B >= 0)
+                            if (index_F + 1):
+                                p = (1 - go_straight) * np.ones(len(neighbours)) / (len(neighbours) - 2)
+                                p[index_B] = 0
+                                p[index_F] = go_straight
+                                # assert(p.sum() == 1)
+                            else:
+                                if len(neighbours) == 1:
+                                    p = 1
+                                else:
+                                    p = np.ones(len(neighbours)) / (len(neighbours) - 1)
+                                    p[index_B] = 0
+                                assert (p.sum() == 1)
+
+                            I = np.random.choice(range(len(neighbours)), p=p)
+                            (y_, x_) = neighbours[I]
+                            if Z[y_, x_] == 0:
+                                last_dir = (y_ - y, x_ - x)
+                                Z[y_, x_] = 1
+                                Z[y_ + (y - y_) // 2, x_ + (x - x_) // 2] = 1
+                                x, y = x_, y_
+            return Z
+
+        world_size = np.random.randint(min_size, max_size + 1)
+        world = -maze(int(world_size), int(world_size),
+                    total_density=np.random.uniform(obstacle_density[0], obstacle_density[1]),
+                    ).astype(int)
+
+        return world
+    
     def set_world(self):
         """randomly generate a new task"""
 
@@ -775,13 +857,16 @@ class MAPFEnv(gym.Env):
             regions_dict[(x0, y0)] = visited
             return visited
 
-        prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
-                                    self.PROB[1])  # sample a value from triangular distribution
-        size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
-                                p=[.5, .25, .25])  # sample a value according to the given probability
-        # prob = self.PROB
-        # size = self.SIZE  # fixed world0 size and obstacle density for evaluation
-        world = -(np.random.rand(int(size), int(size)) < prob).astype(int)  # -1 obstacle,0 nothing, >0 agent id
+        if EnvParameters.LIFELONG:
+            world = self.maze_generator(env_size=self.SIZE, wall_components=(1, 8), obstacle_density=(self.PROB[0], self.PROB[1]), go_straight=0.8)
+        else:
+            prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
+                                        self.PROB[1])  # sample a value from triangular distribution
+            size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
+                                    p=[.5, .25, .25])  # sample a value according to the given probability
+            # prob = self.PROB
+            # size = self.SIZE  # fixed world0 size and obstacle density for evaluation
+            world = -(np.random.rand(int(size), int(size)) < prob).astype(int)  # -1 obstacle,0 nothing, >0 agent id
 
         # randomize the position of agents
         agent_counter = 1
@@ -909,7 +994,7 @@ class MAPFEnv(gym.Env):
             if math.sqrt((x - old_x)**2 + (y - old_y)**2) < EnvParameters.MIN_DIST_NEW_GOAL:
                 continue  # too close to the old goal           
             if goals[x, y] == 0 and world[x, y] != -1:
-                self.agent_goals[agent_id - 1] = (x,y)
+                self.world.agent_goals[agent_id - 1] = (x,y)
                 goals[x, y] = agent_id
                 goals[old_x, old_y] = 0
                 break
@@ -1148,3 +1233,17 @@ class MAPFEnv(gym.Env):
         self.reset_renderer = False
         result = self.viewer.render(return_rgb_array=mode == 'rgb_array')
         return result
+
+
+if __name__ == "__main__":
+    from matplotlib import pyplot as plt
+
+    print("testing randomized map generation")
+    plt.ion()
+    for _ in range(1000):
+        xx = MAPFEnv.maze_generator()
+        world = xx()
+        plt.imshow(world[0])  # obstacle map
+        plt.pause(0.1)
+    plt.ioff()
+    plt.show()
