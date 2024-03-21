@@ -82,9 +82,9 @@ class Runner(object):
 
                 new_xy = self.env.get_positions()
                 processed_rewards, be_rewarded, intrinsic_rewards, min_dist = self.episodic_buffer.if_reward(new_xy,
-                                                                                                             rewards,
-                                                                                                             self.done,
-                                                                                                             on_goal)
+                                                                                                            rewards,
+                                                                                                            self.done,
+                                                                                                            on_goal)
                 self.one_episode_perf['reward_count'] += be_rewarded
                 self.vector[:, :, 3] = rewards
                 self.vector[:, :, 4] = intrinsic_rewards
@@ -105,7 +105,7 @@ class Runner(object):
                 self.one_episode_perf['in_reward'] += np.sum(intrinsic_rewards)
                 if self.one_episode_perf['num_step'] == EnvParameters.EPISODE_LEN // 2:
                     if EnvParameters.LIFELONG:
-                        performance_dict['per_half_goals'].append(goals_reached)
+                        performance_dict['per_half_goals'].append(sum(goals_reached))
                     else:
                         performance_dict['per_half_goals'].append(num_on_goals)
 
@@ -280,10 +280,7 @@ class Runner(object):
 
             vector[:, :, -1] = actions
             new_xy = self.imitation_env.get_positions()
-            if EnvParameters.LIFELONG:
-                _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, goals_reached)
-            else:
-                _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)    
+            _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)    
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist

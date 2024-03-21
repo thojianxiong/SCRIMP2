@@ -360,7 +360,7 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
             one_episode_perf['in_reward'] += np.sum(intrinsic_reward)
             if one_episode_perf['num_step'] == EnvParameters.EPISODE_LEN // 2:
                 if EnvParameters.LIFELONG:
-                    eval_performance_dict['per_half_goals'].append(goals_reached)
+                    eval_performance_dict['per_half_goals'].append(sum(goals_reached))
                 else:
                     eval_performance_dict['per_half_goals'].append(num_on_goals)
 

@@ -55,10 +55,7 @@ def evaluate(eval_env, model0, device, episodic_buffer0, num_agent, save_gif0):
                                                                                        one_episode_perf, message,
                                                                                        episodic_buffer0)
         new_xy = eval_env.get_positions()
-        if EnvParameters.LIFELONG:
-            processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, goals_reached)
-        else:
-            processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, on_goal)
+        processed_rewards, _, intrinsic_reward, min_dist = episodic_buffer0.if_reward(new_xy, rewards, done, on_goal)
 
         vector[:, :, 3] = rewards
         vector[:, :, 4] = intrinsic_reward

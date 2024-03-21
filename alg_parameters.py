@@ -9,11 +9,11 @@ class EnvParameters:
     N_ACTIONS = 5
     EPISODE_LEN = 512 if LIFELONG else 256  # maximum episode length in training
     FOV_SIZE = 3    # 3 for SCRIMP, 11 for PRIMAL2
-    WORLD_SIZE = (10, 40)
+    WORLD_SIZE = (40, 40)
     OBSTACLE_PROB = (0.0, 0.5)
     ACTION_COST = -0.2 if LIFELONG else -0.3    # -0.3 for BOTH
     IDLE_COST = -0.2 if LIFELONG else -0.3      # -0.3 for BOTH
-    GOAL_REWARD = 2.0 if LIFELONG else 0.0   # 0 for SCRIMP, +5 for PRIMAL2
+    GOAL_REWARD = 5.0 if LIFELONG else 0.0   # 0 for SCRIMP, +5 for PRIMAL2
     COLLISION_COST = -2    # -2 for BOTH 
     BLOCKING_COST = 0.0 if LIFELONG else -1      
     PRIMAL_MAZE = True
@@ -33,16 +33,16 @@ class TrainingParameters:
     VALID_COEF = 0.5
     BLOCK_COEF = 0.5
     N_EPOCHS = 10
-    N_ENVS = 1  # number of processes 8 for training 1 for debug
-    N_MAX_STEPS = 3e7  # maximum number of time steps used in training (1/2e7 for training,3e7 for debug)
-    N_STEPS = 2 ** 10  # number of time steps per process per data collection (2**8 for training, 2**10 for debug)
-    MINIBATCH_SIZE = int(2 ** 10)   # same as N_STEPS
+    N_ENVS = 16  # number of processes 8 for training 1 for debug
+    N_MAX_STEPS = 2e6  # maximum number of time steps used in training (1/2e7 for training,3e7 for debug)
+    N_STEPS = 2 ** 8  # number of time steps per process per data collection (2**8 for training, 2**10 for debug)
+    MINIBATCH_SIZE = int(2 ** 8)   # same as N_STEPS
     DEMONSTRATION_PROB = 0.1  # imitation learning rate
 
 
 class NetParameters:
     NET_SIZE = 512
-    NUM_CHANNEL = 8  # number of channels of observations -[FOV_SIZE x FOV_SIZEx NUM_CHANNEL]
+    NUM_CHANNEL = 8  # number of channels of observations -[FOV_SIZE x FOV_SIZEx NUM_CHANNEL] 4 for without maps else 8
     GOAL_REPR_SIZE = 12
     VECTOR_LEN = 7  # [dx, dy, d total,extrinsic rewards,intrinsic reward, min dist respect to buffer, action t-1]
     N_POSITION = 1024  # maximum number of unique ID
@@ -70,13 +70,13 @@ class IntrinsicParameters:
 class SetupParameters:
     SEED = 1234
     USE_GPU_LOCAL = False
-    USE_GPU_GLOBAL = False
+    USE_GPU_GLOBAL = True
     NUM_GPU = 1
 
 
 class RecordingParameters:
     RETRAIN = False
-    WANDB =  False
+    WANDB =  True
     TENSORBOARD = False
     TXT_WRITER =  True
     MAKE_GIF = True
@@ -87,7 +87,7 @@ class RecordingParameters:
     EXPERIMENT_NOTE = 'LIFELONG' if EnvParameters.LIFELONG else 'ONESHOT'
     SAVE_INTERVAL = 5e5  # interval of saving model
     BEST_INTERVAL = 0  # interval of saving model with the best performance
-    GIF_INTERVAL = 1e6  # interval of saving gif
+    GIF_INTERVAL = 2e5  # interval of saving gif
     EVAL_INTERVAL = TrainingParameters.N_ENVS * TrainingParameters.N_STEPS  # interval of evaluating training model0
     EVAL_EPISODES = 1  # number of episode used in evaluation
     RECORD_BEST = False
