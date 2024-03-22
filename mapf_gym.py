@@ -99,12 +99,17 @@ class State(object):
             x, y = random.choice(list(valid_tiles))
             if math.sqrt((x - old_x)**2 + (y - old_y)**2) < EnvParameters.MIN_DIST_NEW_GOAL:
                 continue  # too close to the old goal           
-            if goals[x, y] == 0 and world[x, y] != -1:
+            if goals[x, y] == 0 and world[x, y] != -1: # if xy is not already a goal and is not obstacle
                 self.agent_goals[agent_id - 1] = (x,y)
                 goals[x, y] = agent_id
                 goals[old_x, old_y] = 0
                 break
         return (x, y)
+
+    def assign_new_goals_all(self):
+        for i in range(self.num_agents):
+            self.assign_new_goals(i+1)
+        return self.agent_goals
     
     def find_swap(self, curr_position, past_position, actions, collide_with_obstacle):
         """check if there is a swap collision"""
@@ -632,7 +637,7 @@ class State(object):
 
         assert len(np.argwhere(imag_state < 0)) == 0
 
-        # Ture moving
+        # True moving
         for i in range(self.num_agents):
             direction = self.get_dir(actions[i])
             # execute valid action
@@ -642,14 +647,22 @@ class State(object):
                 ay = self.agents[i][1]
                 self.state[ax, ay] = 0  # clean previous position
                 self.agents[i] = (ax + dx, ay + dy)  # update agent's current position
-                if self.goals[ax + dx, ay + dy] == i + 1:
-                    agent_status[i] = 1  # reach goal
-                    continue
-                elif self.goals[ax + dx, ay + dy] != i + 1 and self.goals[ax, ay] == i + 1:
-                    agent_status[i] = 2
-                    continue  # on goal in last step and leave goal now
+                if EnvParameters.LIFELONG:
+                    if self.goals[ax + dx, ay + dy] == i + 1:
+                        agent_status[i] = 1  # reach goal
+                        self.goals_reached[i] += 1         # for lifelong learning
+                        self.assign_new_goal(i + 1)     # set new goal for the agent
+                    else:
+                        agent_status[i] = 0  # anything else that's not collision
                 else:
-                    agent_status[i] = 0  # nothing happen
+                    if self.goals[ax + dx, ay + dy] == i + 1:
+
+                        continue
+                    elif self.goals[ax + dx, ay + dy] != i + 1 and self.goals[ax, ay] == i + 1:
+                        agent_status[i] = 2
+                        continue  # on goal in last step and leave goal now
+                    else:
+                        agent_status[i] = 0  # nothing happen
 
         for i in range(self.num_agents):
             self.state[self.agents[i]] = i + 1  # move to new position
@@ -750,36 +763,6 @@ class MAPFEnv(gym.Env):
         self.set_world()
         self.action_space = spaces.Tuple([spaces.Discrete(self.num_agents), spaces.Discrete(EnvParameters.N_ACTIONS)])
         self.viewer = None
-
-    # def is_connected(self, world0):
-    #     """check if each agent's start position and goal position are sampled from the same connected region"""
-    #     sys.setrecursionlimit(10000)
-    #     world0 = world0.copy()
-
-    #     def first_free(world):
-    #         for x in range(world.shape[0]):
-    #             for y in range(world.shape[1]):
-    #                 if world[x, y] == 0:
-    #                     return x, y
-
-    #     def flood_fill(world, k, g):
-    #         sx, sy = world.shape[0], world.shape[1]
-    #         if k < 0 or k >= sx or g < 0 or g >= sy:  # out of boundaries
-    #             return
-    #         if world[k, g] == -1:
-    #             return  # obstacles
-    #         world[k, g] = -1
-    #         flood_fill(world, k + 1, g)
-    #         flood_fill(world, k, g + 1)
-    #         flood_fill(world, k - 1, g)
-    #         flood_fill(world, k, g - 1)
-
-    #     i, j = first_free(world0)
-    #     flood_fill(world0, i, j)
-    #     if np.any(world0 == 0):
-    #         return False
-    #     else:
-    #         return True
 
     def get_obstacle_map(self):
         """get obstacle map"""
@@ -1091,6 +1074,13 @@ class MAPFEnv(gym.Env):
         #    -2: collision with obstacles
         #    -3: no valid action
 
+        #     For lifelong
+        #     1: action executed and reached/stayed on goal
+        #     0: action executed
+        #    -1: out of boundaries
+        #    -2: collision with obstacles
+        #    -3: no valid action
+
         # initialization
         blockings = np.zeros((1, self.num_agents), dtype=np.float32)
         rewards = np.zeros((1, self.num_agents), dtype=np.float32)
@@ -1104,39 +1094,42 @@ class MAPFEnv(gym.Env):
         num_collide = 0
 
         for i in range(self.num_agents):
-            if modify_actions[i] == 0:  # staying still
-                if action_status[i] == 1:  # stayed on goal
-                    if EnvParameters.LIFELONG:
-                        rewards[:, i] = EnvParameters.IDLE_COST  # stop penalty
-                    else:
+            if EnvParameters.LIFELONG:
+                if action_status[i] == -1 or action_status[i] == -2 or action_status[i] == -3:
+                    rewards[:, i] = EnvParameters.COLLISION_COST
+                    num_collide += 1
+                elif action_status[i] == 1:
+                    rewards[:, i] = EnvParameters.GOAL_REWARD
+                else:
+                    rewards[:, i] = EnvParameters.ACTION_COST
+            else:
+                if modify_actions[i] == 0:  # staying still
+                    if action_status[i] == 1:  # stayed on goal
                         rewards[:, i] = EnvParameters.GOAL_REWARD
 
-                    if self.num_agents < 32:  # do not calculate A* for increasing speed
-                        x, num_blocking = self.get_blocking_reward(i + 1)
-                        num_blockings += num_blocking
-                        rewards[:, i] += x
-                        if x < 0:
-                            blockings[:, i] = 1
-                elif action_status[i] == 0:  # stayed off goal
-                    rewards[:, i] = EnvParameters.IDLE_COST  # stop penalty
-                elif action_status[i] == -3 or action_status[i] == -2 or action_status[i] == -1:
-                    rewards[:, i] = EnvParameters.COLLISION_COST
-                    num_collide += 1
+                        if self.num_agents < 32:  # do not calculate A* for increasing speed
+                            x, num_blocking = self.get_blocking_reward(i + 1)
+                            num_blockings += num_blocking
+                            rewards[:, i] += x
+                            if x < 0:
+                                blockings[:, i] = 1
+                    elif action_status[i] == 0:  # stayed off goal
+                        rewards[:, i] = EnvParameters.IDLE_COST  # stop penalty
+                    elif action_status[i] == -3 or action_status[i] == -2 or action_status[i] == -1:
+                        rewards[:, i] = EnvParameters.COLLISION_COST
+                        num_collide += 1
 
-            else:  # moving
-                if action_status[i] == 1:  # reached goal
-                    rewards[:, i] = EnvParameters.GOAL_REWARD
-                    if EnvParameters.LIFELONG:
-                        self.world.goals_reached[i] += 1         # for lifelong learning
-                        self.world.assign_new_goal(i + 1)     # set new goal for the agent
-                elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
-                    rewards[:, i] = EnvParameters.COLLISION_COST
-                    num_collide += 1
-                elif action_status[i] == 2:  # leave own goal
-                    rewards[:, i] = EnvParameters.ACTION_COST
-                    leave_goals += 1
-                else:  # nothing happen
-                    rewards[:, i] = EnvParameters.ACTION_COST
+                else:  # moving
+                    if action_status[i] == 1:  # reached goal
+                        rewards[:, i] = EnvParameters.GOAL_REWARD
+                    elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
+                        rewards[:, i] = EnvParameters.COLLISION_COST
+                        num_collide += 1
+                    elif action_status[i] == 2:  # leave own goal
+                        rewards[:, i] = EnvParameters.ACTION_COST
+                        leave_goals += 1
+                    else:  # nothing happen
+                        rewards[:, i] = EnvParameters.ACTION_COST
 
             state = self.observe(i + 1)
             obs[:, i, :, :, :] = state[0]
