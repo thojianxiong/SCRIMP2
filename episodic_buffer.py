@@ -67,8 +67,13 @@ class EpisodicBuffer(object):
             novelty = np.asarray(dist < random.randint(1, IntrinsicParameters.K), dtype=np.int64)
 
             aggregated = np.max(novelty)
-            bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
+            
+            if EnvParameters.LIFELONG:
+                bonus[:, i] = np.asarray([0.0 if done else self.surrogate2 - aggregated])       # always have intrinsic reward since it is lifelong
+            else:
+                bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
             scale_factor = self.surrogate1
+
             if self.no_reward:
                 scale_factor = 0.0
             intrinsic_reward = scale_factor * bonus[:, i]
@@ -80,7 +85,7 @@ class EpisodicBuffer(object):
             if min_dist[:, i] >= IntrinsicParameters.ADD_THRESHOLD:
                 self.add(new_xy[i], i)
 
-        return processed_rewards, reward_count, bonus, min_dist
+        return processed_rewards, reward_count, bonus, min_dist     #processed_rewards, be_rewarded, intrinsic_rewards, min_dist
 
     def image_if_reward(self, new_xy, done, on_goal):
         """similar to if_reward but it is only used when breaking a tie"""
@@ -94,7 +99,10 @@ class EpisodicBuffer(object):
             novelty = np.asarray(dist < random.randint(1, IntrinsicParameters.K), dtype=np.int64)
 
             aggregated = np.max(novelty)
-            bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
+            if EnvParameters.LIFELONG:
+                bonus[:, i] = np.asarray([0.0 if done else self.surrogate2 - aggregated])
+            else:
+                bonus[:, i] = np.asarray([0.0 if done or on_goal[i] else self.surrogate2 - aggregated])
             min_dist[:, i] = np.min(dist)
 
         return bonus, min_dist

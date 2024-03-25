@@ -17,7 +17,7 @@ from util import set_global_seeds, write_to_tensorboard, write_to_wandb, make_gi
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 ray.init(num_gpus=SetupParameters.NUM_GPU)
-print("Welcome to SCRIMP on MAPF!\n")
+print("Welcome to SCRIMP2 on MAPF!\n")
 
 
 def main():
@@ -104,11 +104,11 @@ def main():
                 net_weights_id = ray.put(net_weights)
                 curr_steps_id = ray.put(curr_steps)
                 demon_probs = np.random.rand()
-                if demon_probs < TrainingParameters.DEMONSTRATION_PROB:
+                if demon_probs < TrainingParameters.DEMONSTRATION_PROB:                 # IMITATION LEARNING
                     demon = True
                     for i, env in enumerate(envs):
                         job_list.append(env.imitation.remote(net_weights_id, curr_steps_id))
-                else:
+                else:                                                                   # REINFORCEMENT LEARNING
                     demon = False
                     for i, env in enumerate(envs):
                         job_list.append(env.run.remote(net_weights_id, curr_steps_id))
@@ -324,8 +324,9 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
         one_episode_perf = {'num_step': 0, 'episode_reward': 0, 'invalid': 0, 'block': 0,
                             'num_leave_goal': 0, 'wrong_blocking': 0, 'num_collide': 0, 'reward_count': 0,
                             'ex_reward': 0, 'in_reward': 0}
-        if save_gif:
-            episode_frames.append(eval_env._render(mode='rgb_array', screen_width=900, screen_height=900))
+        if RecordingParameters.MAKE_GIF:
+            if save_gif:
+                episode_frames.append(eval_env._render(mode='rgb_array', screen_width=900, screen_height=900))
 
         # stepping
         while not done:
@@ -340,7 +341,7 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
 
             # move
             rewards, valid_actions, obs, vector, _, done, _, num_on_goals, one_episode_perf, max_on_goals, \
-                _, _, on_goal = one_step(eval_env, one_episode_perf, actions, pre_block, model, v_all, hidden_state,
+                _, _, on_goal, goals_reached = one_step(eval_env, one_episode_perf, actions, pre_block, model, v_all, hidden_state,
                                          ps, episodic_buffer.no_reward, message, episodic_buffer, num_agent)
 
             new_xy = eval_env.get_positions()
@@ -350,32 +351,44 @@ def evaluate(eval_env, episodic_buffer, model, device, save_gif, curr_steps, gre
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist
-
-            if save_gif:
-                episode_frames.append(eval_env._render(mode='rgb_array', screen_width=900, screen_height=900))
+            if RecordingParameters.MAKE_GIF:
+                if save_gif:
+                    episode_frames.append(eval_env._render(mode='rgb_array', screen_width=900, screen_height=900))
 
             one_episode_perf['episode_reward'] += np.sum(processed_rewards)
             one_episode_perf['ex_reward'] += np.sum(rewards)
             one_episode_perf['in_reward'] += np.sum(intrinsic_reward)
             if one_episode_perf['num_step'] == EnvParameters.EPISODE_LEN // 2:
-                eval_performance_dict['per_half_goals'].append(num_on_goals)
+                if EnvParameters.LIFELONG:
+                    eval_performance_dict['per_half_goals'].append(sum(goals_reached))
+                else:
+                    eval_performance_dict['per_half_goals'].append(num_on_goals)
 
             if done:
-                # save gif
-                if save_gif:
-                    if not os.path.exists(RecordingParameters.GIFS_PATH):
-                        os.makedirs(RecordingParameters.GIFS_PATH)
-                    images = np.array(episode_frames)
-                    make_gif(images,
-                             '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
-                                 RecordingParameters.GIFS_PATH,
-                                 curr_steps, one_episode_perf[
-                                     'episode_reward'],
-                                 num_on_goals, greedy))
-                    save_gif = False
-
+                if RecordingParameters.MAKE_GIF:
+                    # save gif
+                    if save_gif:
+                        if not os.path.exists(RecordingParameters.GIFS_PATH):
+                            os.makedirs(RecordingParameters.GIFS_PATH)
+                        images = np.array(episode_frames)
+                        if EnvParameters.LIFELONG:
+                            make_gif(images,
+                                '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
+                                    RecordingParameters.GIFS_PATH,
+                                    curr_steps, one_episode_perf[
+                                        'episode_reward'],
+                                    sum(goals_reached), greedy))
+                        else:
+                            make_gif(images,
+                                    '{}/steps_{:d}_reward{:.1f}_final_goals{:.1f}_greedy{:d}.gif'.format(
+                                        RecordingParameters.GIFS_PATH,
+                                        curr_steps, one_episode_perf[
+                                            'episode_reward'],
+                                        num_on_goals, greedy))
+                        save_gif = False
+                #update_perf uses goals_reached if lifelong else num_on_goals
                 eval_performance_dict = update_perf(one_episode_perf, eval_performance_dict, num_on_goals, max_on_goals,
-                                                    num_agent)
+                                                    num_agent, goals_reached)
 
     # average performance of multiple episodes
     for i in eval_performance_dict.keys():

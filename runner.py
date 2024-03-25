@@ -75,16 +75,16 @@ class Runner(object):
                 mb_done.append(self.done)
 
                 rewards, self.valid_actions, self.obs, self.vector, self.train_valid, self.done, blockings, \
-                    num_on_goals, self.one_episode_perf, max_on_goals, action_status, modify_actions, on_goal \
+                    num_on_goals, self.one_episode_perf, max_on_goals, action_status, modify_actions, on_goal, goals_reached \
                     = one_step(self.env, self.one_episode_perf, actions, pre_block, self.local_model, values_all,
                                self.hidden_state, ps, self.episodic_buffer.no_reward, self.message, self.episodic_buffer,
                                self.num_agent)
 
                 new_xy = self.env.get_positions()
                 processed_rewards, be_rewarded, intrinsic_rewards, min_dist = self.episodic_buffer.if_reward(new_xy,
-                                                                                                             rewards,
-                                                                                                             self.done,
-                                                                                                             on_goal)
+                                                                                                            rewards,
+                                                                                                            self.done,
+                                                                                                            on_goal)
                 self.one_episode_perf['reward_count'] += be_rewarded
                 self.vector[:, :, 3] = rewards
                 self.vector[:, :, 4] = intrinsic_rewards
@@ -104,11 +104,14 @@ class Runner(object):
                 self.one_episode_perf['ex_reward'] += np.sum(rewards)
                 self.one_episode_perf['in_reward'] += np.sum(intrinsic_rewards)
                 if self.one_episode_perf['num_step'] == EnvParameters.EPISODE_LEN // 2:
-                    performance_dict['per_half_goals'].append(num_on_goals)
+                    if EnvParameters.LIFELONG:
+                        performance_dict['per_half_goals'].append(sum(goals_reached))
+                    else:
+                        performance_dict['per_half_goals'].append(num_on_goals)
 
                 if self.done:
                     performance_dict = update_perf(self.one_episode_perf, performance_dict, num_on_goals, max_on_goals,
-                                                   self.num_agent)
+                                                   self.num_agent, goals_reached)
                     self.one_episode_perf = {'num_step': 0, 'episode_reward': 0, 'invalid': 0, 'block': 0,
                                              'num_leave_goal': 0, 'wrong_blocking': 0, 'num_collide': 0,
                                              'reward_count': 0, 'ex_reward': 0, 'in_reward': 0}
@@ -271,13 +274,13 @@ class Runner(object):
                 actions[i] = self.imitation_env.world.get_action(direction)
             mb_actions.append(actions)
 
-            obs, vector, rewards, done, _, on_goal, _, valid_actions, _, _, _, _, _, _, _ = \
+            obs, vector, rewards, done, _, on_goal, _, valid_actions, _, _, _, _, _, _, _, goals_reached = \
                 self.imitation_env.joint_step(actions, 0, model='imitation', pre_value=None, input_state=None,
                                               ps=None, no_reward=None, message=None, episodic_buffer=None)
 
             vector[:, :, -1] = actions
             new_xy = self.imitation_env.get_positions()
-            _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)
+            _, _, intrinsic_reward, min_dist = self.imitation_episodic_buffer.if_reward(new_xy, rewards, done, on_goal)    
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist

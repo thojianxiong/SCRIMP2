@@ -32,6 +32,7 @@ class State(object):
         self.num_agents = num_agents
         self.agents, self.agent_goals = self.scan_for_agents()  # position of agents, and position of goals
         self.get_heuri_map()
+        self.goals_reached = [0 for _ in range(self.num_agents)]  # for lifelong learning
 
         assert (len(self.agents) == num_agents)
 
@@ -57,6 +58,59 @@ class State(object):
         """the position of agent's goal"""
         return self.agent_goals[agent_id - 1]
 
+    def assign_new_goal(self, agent_id):
+        """set new goal for the agent and remove old goal"""
+        assert (agent_id > 0)
+
+        def get_connected_region(world0, regions_dict, x0, y0):
+            # ensure at the beginning of an episode, all agents and their goal at the same connected region
+            sys.setrecursionlimit(1000000)
+            if (x0, y0) in regions_dict:  # have done
+                return regions_dict[(x0, y0)]
+            visited = set()
+            sx, sy = world0.shape[0], world0.shape[1]
+            work_list = [(x0, y0)]
+            while len(work_list) > 0:
+                (i, j) = work_list.pop()
+                if i < 0 or i >= sx or j < 0 or j >= sy:
+                    continue
+                if world0[i, j] == -1:
+                    continue  # crashes
+                if world0[i, j] > 0:
+                    regions_dict[(i, j)] = visited
+                if (i, j) in visited:
+                    continue
+                visited.add((i, j))
+                work_list.append((i + 1, j))
+                work_list.append((i, j + 1))
+                work_list.append((i - 1, j))
+                work_list.append((i, j - 1))
+            regions_dict[(x0, y0)] = visited
+            return visited
+        
+        world = self.state  # static obstacle: -1,empty: 0,agent = positive integer (agent_id)
+        goals = self.goals  # empty: 0, goal = positive integer (corresponding to agent_id)
+        agent_pos = self.agents[agent_id - 1]
+        old_agent_goal = self.agent_goals[agent_id - 1]
+        '''find random new position for new goal that's not exisiting goal and not an obstacle'''
+        valid_tiles = get_connected_region(world, dict(), agent_pos[0], agent_pos[1])
+        old_x, old_y = old_agent_goal[0], old_agent_goal[1]
+        while True:
+            x, y = random.choice(list(valid_tiles))
+            if math.sqrt((x - old_x)**2 + (y - old_y)**2) < EnvParameters.MIN_DIST_NEW_GOAL:
+                continue  # too close to the old goal           
+            if goals[x, y] == 0 and world[x, y] != -1: # if xy is not already a goal and is not obstacle
+                self.agent_goals[agent_id - 1] = (x,y)
+                goals[x, y] = agent_id
+                goals[old_x, old_y] = 0
+                break
+        return (x, y)
+
+    def assign_new_goals_all(self):
+        for i in range(self.num_agents):
+            self.assign_new_goals(i+1)
+        return self.agent_goals
+    
     def find_swap(self, curr_position, past_position, actions, collide_with_obstacle):
         """check if there is a swap collision"""
         swap_index = []
@@ -197,6 +251,9 @@ class State(object):
             if action == 0:  # stay
                 if on_goals[i]:  # stay on goal
                     rewards[:, i] = EnvParameters.GOAL_REWARD
+                    if EnvParameters.LIFELONG:
+                        self.goals_reached[i] += 1         # for lifelong learning
+                        self.assign_new_goal(i + 1)     # set new goal for the agent
                     if self.num_agents < 32:  # do not use A* for improving speed
                         x, _ = self.imag_blocking_reward(i + 1, moved_position)
                         rewards[:, i] += x
@@ -208,6 +265,9 @@ class State(object):
             else:  # moving
                 if on_goals[i]:  # stay on goal
                     rewards[:, i] = EnvParameters.GOAL_REWARD
+                    if EnvParameters.LIFELONG:
+                        self.goals_reached[i] += 1         # for lifelong learning
+                        self.assign_new_goal(i + 1)     # set new goal for the agent
                 elif status == -1 or status == -2 or status == -3:  # collision
                     rewards[:, i] = EnvParameters.COLLISION_COST
                 else:
@@ -296,8 +356,8 @@ class State(object):
             # generate image observation
             new_xy, on_goal = self.imag_xy_position(moved_position)
             rewards = self.imag_reward(new_action, new_status, on_goal, moved_position, actions, i, agent_indexes,
-                                       agent_status)
-            intrinsic_reward, min_dist = episodic_buffer.image_if_reward(new_xy, False, on_goal)
+                                    agent_status)
+            intrinsic_reward, min_dist = episodic_buffer.image_if_reward(new_xy, False, on_goal)    
             vector[:, :, 3] = rewards
             vector[:, :, 4] = intrinsic_reward
             vector[:, :, 5] = min_dist
@@ -577,7 +637,7 @@ class State(object):
 
         assert len(np.argwhere(imag_state < 0)) == 0
 
-        # Ture moving
+        # True moving
         for i in range(self.num_agents):
             direction = self.get_dir(actions[i])
             # execute valid action
@@ -587,14 +647,22 @@ class State(object):
                 ay = self.agents[i][1]
                 self.state[ax, ay] = 0  # clean previous position
                 self.agents[i] = (ax + dx, ay + dy)  # update agent's current position
-                if self.goals[ax + dx, ay + dy] == i + 1:
-                    agent_status[i] = 1  # reach goal
-                    continue
-                elif self.goals[ax + dx, ay + dy] != i + 1 and self.goals[ax, ay] == i + 1:
-                    agent_status[i] = 2
-                    continue  # on goal in last step and leave goal now
+                if EnvParameters.LIFELONG:
+                    if self.goals[ax + dx, ay + dy] == i + 1:
+                        agent_status[i] = 1  # reach goal
+                        self.goals_reached[i] += 1         # for lifelong learning
+                        self.assign_new_goal(i + 1)     # set new goal for the agent
+                    else:
+                        agent_status[i] = 0  # anything else that's not collision
                 else:
-                    agent_status[i] = 0  # nothing happen
+                    if self.goals[ax + dx, ay + dy] == i + 1:
+
+                        continue
+                    elif self.goals[ax + dx, ay + dy] != i + 1 and self.goals[ax, ay] == i + 1:
+                        agent_status[i] = 2
+                        continue  # on goal in last step and leave goal now
+                    else:
+                        agent_status[i] = 0  # nothing happen
 
         for i in range(self.num_agents):
             self.state[self.agents[i]] = i + 1  # move to new position
@@ -608,7 +676,7 @@ class State(object):
         """obtain corresponding action based on x,y operation"""
         return actionDict[direction]
 
-    def task_done(self):
+    def task_done(self): 
         """check if all agents on their goal"""
         num_complete = 0
         for i in range(1, len(self.agents) + 1):
@@ -696,36 +764,6 @@ class MAPFEnv(gym.Env):
         self.action_space = spaces.Tuple([spaces.Discrete(self.num_agents), spaces.Discrete(EnvParameters.N_ACTIONS)])
         self.viewer = None
 
-    def is_connected(self, world0):
-        """check if each agent's start position and goal position are sampled from the same connected region"""
-        sys.setrecursionlimit(10000)
-        world0 = world0.copy()
-
-        def first_free(world):
-            for x in range(world.shape[0]):
-                for y in range(world.shape[1]):
-                    if world[x, y] == 0:
-                        return x, y
-
-        def flood_fill(world, k, g):
-            sx, sy = world.shape[0], world.shape[1]
-            if k < 0 or k >= sx or g < 0 or g >= sy:  # out of boundaries
-                return
-            if world[k, g] == -1:
-                return  # obstacles
-            world[k, g] = -1
-            flood_fill(world, k + 1, g)
-            flood_fill(world, k, g + 1)
-            flood_fill(world, k - 1, g)
-            flood_fill(world, k, g - 1)
-
-        i, j = first_free(world0)
-        flood_fill(world0, i, j)
-        if np.any(world0 == 0):
-            return False
-        else:
-            return True
-
     def get_obstacle_map(self):
         """get obstacle map"""
         return (self.world.state == -1).astype(int)
@@ -744,6 +782,88 @@ class MAPFEnv(gym.Env):
             result.append(self.world.get_pos(i))
         return result
 
+    def maze_generator(self, env_size=(10, 70), wall_components=(1, 8), obstacle_density=None, go_straight=0.8):
+        min_size, max_size = env_size
+        min_component, max_component = wall_components
+        num_components = np.random.randint(low=min_component, high=max_component + 1)
+        assert min_size > 5
+
+        if obstacle_density is None:
+            obstacle_density = [0, 1]
+
+        def maze(h, w, total_density=0):
+            # Only odd shapes
+            assert h > 0 and w > 0, "You are giving non-positive width and height"
+            shape = ((h // 2) * 2 + 3, (w // 2) * 2 + 3)
+            # Adjust num_components and density relative to maze world_size
+            # density    = int(density * ((shape[0] // 2) * (shape[1] // 2))) // 20 # world_size of components
+            density = int(shape[0] * shape[1] * total_density // num_components) if num_components != 0 else 0
+
+            # Build actual maze
+            Z = np.zeros(shape, dtype='int')
+            # Fill borders
+            Z[0, :] = Z[-1, :] = 1
+            Z[:, 0] = Z[:, -1] = 1
+            # Make aisles
+            for i in range(density):
+                x, y = np.random.randint(0, shape[1] // 2) * 2, np.random.randint(0, shape[
+                    0] // 2) * 2  # pick a random position
+                Z[y, x] = 1
+                last_dir = 0
+                for j in range(num_components):
+                    neighbours = []
+                    if x > 1:             neighbours.append((y, x - 2))
+                    if x < shape[1] - 2:  neighbours.append((y, x + 2))
+                    if y > 1:             neighbours.append((y - 2, x))
+                    if y < shape[0] - 2:  neighbours.append((y + 2, x))
+                    if len(neighbours):
+                        if last_dir == 0:
+                            y_, x_ = neighbours[np.random.randint(0, len(neighbours))]
+                            if Z[y_, x_] == 0:
+                                last_dir = (y_ - y, x_ - x)
+                                Z[y_, x_] = 1
+                                Z[y_ + (y - y_) // 2, x_ + (x - x_) // 2] = 1
+                                x, y = x_, y_
+                        else:
+                            index_F = -1
+                            index_B = -1
+                            diff = []
+                            for k in range(len(neighbours)):
+                                diff.append((neighbours[k][0] - y, neighbours[k][1] - x))
+                                if diff[k] == last_dir:
+                                    index_F = k
+                                elif diff[k][0] + last_dir[0] == 0 and diff[k][1] + last_dir[1] == 0:
+                                    index_B = k
+                            assert (index_B >= 0)
+                            if (index_F + 1):
+                                p = (1 - go_straight) * np.ones(len(neighbours)) / (len(neighbours) - 2)
+                                p[index_B] = 0
+                                p[index_F] = go_straight
+                                # assert(p.sum() == 1)
+                            else:
+                                if len(neighbours) == 1:
+                                    p = 1
+                                else:
+                                    p = np.ones(len(neighbours)) / (len(neighbours) - 1)
+                                    p[index_B] = 0
+                                assert (p.sum() == 1)
+
+                            I = np.random.choice(range(len(neighbours)), p=p)
+                            (y_, x_) = neighbours[I]
+                            if Z[y_, x_] == 0:
+                                last_dir = (y_ - y, x_ - x)
+                                Z[y_, x_] = 1
+                                Z[y_ + (y - y_) // 2, x_ + (x - x_) // 2] = 1
+                                x, y = x_, y_
+            return Z
+
+        world_size = np.random.randint(min_size, max_size + 1)
+        world = -maze(int(world_size), int(world_size),
+                    total_density=np.random.uniform(obstacle_density[0], obstacle_density[1]),
+                    ).astype(int)
+
+        return world
+    
     def set_world(self):
         """randomly generate a new task"""
 
@@ -773,13 +893,16 @@ class MAPFEnv(gym.Env):
             regions_dict[(x0, y0)] = visited
             return visited
 
-        prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
-                                    self.PROB[1])  # sample a value from triangular distribution
-        size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
-                                p=[.5, .25, .25])  # sample a value according to the given probability
-        # prob = self.PROB
-        # size = self.SIZE  # fixed world0 size and obstacle density for evaluation
-        world = -(np.random.rand(int(size), int(size)) < prob).astype(int)  # -1 obstacle,0 nothing, >0 agent id
+        if EnvParameters.PRIMAL_MAZE:
+            world = self.maze_generator(env_size=self.SIZE, wall_components=(1, 8), obstacle_density=(self.PROB[0], self.PROB[1]), go_straight=0.8)
+        else:
+            prob = np.random.triangular(self.PROB[0], .33 * self.PROB[0] + .66 * self.PROB[1],
+                                        self.PROB[1])  # sample a value from triangular distribution
+            size = np.random.choice([self.SIZE[0], self.SIZE[0] * .5 + self.SIZE[1] * .5, self.SIZE[1]],
+                                    p=[.5, .25, .25])  # sample a value according to the given probability
+            # prob = self.PROB
+            # size = self.SIZE  # fixed world0 size and obstacle density for evaluation
+            world = -(np.random.rand(int(size), int(size)) < prob).astype(int)  # -1 obstacle,0 nothing, >0 agent id
 
         # randomize the position of agents
         agent_counter = 1
@@ -852,12 +975,14 @@ class MAPFEnv(gym.Env):
             dx = dx / mag
             dy = dy / mag
 
+        # return [poss_map, goal_map, goals_map, obs_map], [dx, dy, mag]  #remove guide maps
         return [poss_map, goal_map, goals_map, obs_map,guide_map[0],guide_map[1],guide_map[2],guide_map[3]], [dx, dy, mag]
 
     def _reset(self, num_agents):
         """restart a new task"""
         self.num_agents = num_agents
         self.max_on_goal = 0
+        self.world.goals_reached = [0 for _ in range(self.num_agents)]
         if self.viewer is not None:
             self.viewer = None
 
@@ -949,6 +1074,13 @@ class MAPFEnv(gym.Env):
         #    -2: collision with obstacles
         #    -3: no valid action
 
+        #     For lifelong
+        #     1: action executed and reached/stayed on goal
+        #     0: action executed
+        #    -1: out of boundaries
+        #    -2: collision with obstacles
+        #    -3: no valid action
+
         # initialization
         blockings = np.zeros((1, self.num_agents), dtype=np.float32)
         rewards = np.zeros((1, self.num_agents), dtype=np.float32)
@@ -962,32 +1094,42 @@ class MAPFEnv(gym.Env):
         num_collide = 0
 
         for i in range(self.num_agents):
-            if modify_actions[i] == 0:  # staying still
-                if action_status[i] == 1:  # stayed on goal
-                    rewards[:, i] = EnvParameters.GOAL_REWARD
-                    if self.num_agents < 32:  # do not calculate A* for increasing speed
-                        x, num_blocking = self.get_blocking_reward(i + 1)
-                        num_blockings += num_blocking
-                        rewards[:, i] += x
-                        if x < 0:
-                            blockings[:, i] = 1
-                elif action_status[i] == 0:  # stayed off goal
-                    rewards[:, i] = EnvParameters.IDLE_COST  # stop penalty
-                elif action_status[i] == -3 or action_status[i] == -2 or action_status[i] == -1:
+            if EnvParameters.LIFELONG:
+                if action_status[i] == -1 or action_status[i] == -2 or action_status[i] == -3:
                     rewards[:, i] = EnvParameters.COLLISION_COST
                     num_collide += 1
+                elif action_status[i] == 1:
+                    rewards[:, i] = EnvParameters.GOAL_REWARD
+                else:
+                    rewards[:, i] = EnvParameters.ACTION_COST
+            else:
+                if modify_actions[i] == 0:  # staying still
+                    if action_status[i] == 1:  # stayed on goal
+                        rewards[:, i] = EnvParameters.GOAL_REWARD
 
-            else:  # moving
-                if action_status[i] == 1:  # reached goal
-                    rewards[:, i] = EnvParameters.GOAL_REWARD
-                elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
-                    rewards[:, i] = EnvParameters.COLLISION_COST
-                    num_collide += 1
-                elif action_status[i] == 2:  # leave own goal
-                    rewards[:, i] = EnvParameters.ACTION_COST
-                    leave_goals += 1
-                else:  # nothing happen
-                    rewards[:, i] = EnvParameters.ACTION_COST
+                        if self.num_agents < 32:  # do not calculate A* for increasing speed
+                            x, num_blocking = self.get_blocking_reward(i + 1)
+                            num_blockings += num_blocking
+                            rewards[:, i] += x
+                            if x < 0:
+                                blockings[:, i] = 1
+                    elif action_status[i] == 0:  # stayed off goal
+                        rewards[:, i] = EnvParameters.IDLE_COST  # stop penalty
+                    elif action_status[i] == -3 or action_status[i] == -2 or action_status[i] == -1:
+                        rewards[:, i] = EnvParameters.COLLISION_COST
+                        num_collide += 1
+
+                else:  # moving
+                    if action_status[i] == 1:  # reached goal
+                        rewards[:, i] = EnvParameters.GOAL_REWARD
+                    elif action_status[i] == -2 or action_status[i] == -1 or action_status[i] == -3:
+                        rewards[:, i] = EnvParameters.COLLISION_COST
+                        num_collide += 1
+                    elif action_status[i] == 2:  # leave own goal
+                        rewards[:, i] = EnvParameters.ACTION_COST
+                        leave_goals += 1
+                    else:  # nothing happen
+                        rewards[:, i] = EnvParameters.ACTION_COST
 
             state = self.observe(i + 1)
             obs[:, i, :, :, :] = state[0]
@@ -998,12 +1140,14 @@ class MAPFEnv(gym.Env):
             on_goals[i] = self.world.get_pos(i + 1) == self.world.get_goal(i + 1)
 
         done, num_on_goal = self.world.task_done()
-        if num_on_goal > self.max_on_goal:
-            self.max_on_goal = num_on_goal
+        if num_on_goal > self.max_on_goal:      # max_on_goal is the max number of agents on goals after any episode
+            self.max_on_goal = num_on_goal      # num_on_goal is the number of agents on goals currently
         if num_step >= EnvParameters.EPISODE_LEN - 1:
             done = True
+        if EnvParameters.LIFELONG:
+            done = True if num_step >= EnvParameters.EPISODE_LEN - 1 else False     # terminating condition for lifelong is if eps length reached
         return obs, vector, rewards, done, next_valid_actions, on_goals, blockings, valid_actions, num_blockings, \
-            leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions
+                leave_goals, num_on_goal, self.max_on_goal, num_collide, action_status, modify_actions, self.world.goals_reached
 
     def create_rectangle(self, x, y, width, height, fill, permanent=False):
         """draw a rectangle to represent an agent"""
@@ -1092,3 +1236,17 @@ class MAPFEnv(gym.Env):
         self.reset_renderer = False
         result = self.viewer.render(return_rgb_array=mode == 'rgb_array')
         return result
+
+
+if __name__ == "__main__":
+    from matplotlib import pyplot as plt
+
+    print("testing randomized map generation")
+    plt.ion()
+    env = MAPFEnv() 
+    for _ in range(1000):
+        world = env.maze_generator()
+        plt.imshow(world)  # obstacle map
+        plt.pause(0.1)
+    plt.ioff()
+    plt.show()
