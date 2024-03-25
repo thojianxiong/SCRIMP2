@@ -1190,7 +1190,6 @@ class MAPFEnv(gym.Env):
             self.reset_renderer = True
         if self.reset_renderer:
             self.create_rectangle(0, 0, screen_width, screen_height, (.6, .6, .6), permanent=True)
-            self.create_rectangle(0, self.world.state.shape[1] - 1, screen_width, size, (.6, .6, .6), permanent=True)
             for i in range(self.world.state.shape[0]):
                 start = 0
                 end = 1
