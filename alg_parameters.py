@@ -54,6 +54,7 @@ class NetParameters:
     D_K = 32
     D_V = 32
     COMMUNICATE = False
+    DOUBLE = True
     MESSAGE = 'EMPTY'  # 'EMPTY' or 'MAP' or 'XSDS' etc
 
 
@@ -130,7 +131,7 @@ all_args = {'N_AGENTS': EnvParameters.N_AGENTS, 'N_ACTIONS': EnvParameters.N_ACT
             'N_POSITION': NetParameters.N_POSITION,
             'D_MODEL': NetParameters.D_MODEL, 'D_HIDDEN': NetParameters.D_HIDDEN, 'N_LAYERS': NetParameters.N_LAYERS,
             'N_HEAD': NetParameters.N_HEAD, 'D_K': NetParameters.D_K, 'D_V': NetParameters.D_V,
-            'COMMUNICATE': NetParameters.COMMUNICATE, 'MESSAGE': NetParameters.MESSAGE,
+            'COMMUNICATE': NetParameters.COMMUNICATE, 'DOUBLE': NetParameters.DOUBLE, 'MESSAGE': NetParameters.MESSAGE,
             'DIST_FACTOR': TieBreakingParameters.DIST_FACTOR, 'K': IntrinsicParameters.K,
             'CAPACITY': IntrinsicParameters.CAPACITY, 'ADD_THRESHOLD': IntrinsicParameters.ADD_THRESHOLD,
             'N_ADD_INTRINSIC': IntrinsicParameters.N_ADD_INTRINSIC,

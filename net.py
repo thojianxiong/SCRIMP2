@@ -58,7 +58,10 @@ class SCRIMPNet(nn.Module):
         self.lstm_memory = nn.LSTMCell(input_size=NetParameters.NET_SIZE, hidden_size=NetParameters.NET_SIZE // 2)
 
         # output heads
-        if NetParameters.COMMUNICATE:
+        if NetParameters.DOUBLE and NetParameters.COMMUNICATE:
+            self.fully_connected_4 = nn.Linear(NetParameters.NET_SIZE * 3 + NetParameters.NET_SIZE // 2,
+                                            NetParameters.NET_SIZE)
+        elif NetParameters.COMMUNICATE:
             self.fully_connected_4 = nn.Linear(NetParameters.NET_SIZE * 2 + NetParameters.NET_SIZE // 2,
                                             NetParameters.NET_SIZE) # 512+512+256
         else:
@@ -120,6 +123,11 @@ class SCRIMPNet(nn.Module):
             c1 = torch.cat([memories, h2], -1)
         # print("Shape of c1:", c1.shape)
         # print("Shape of fully_connected_4 weight:", self.fully_connected_4.weight.shape)
+            
+        if NetParameters.DOUBLE and NetParameters.COMMUNICATE:
+            c2 = self.communication_layer(message)
+            c1 = torch.cat([c2, c1], -1)
+
         c1 = F.relu(self.fully_connected_4(c1))
         policy_layer = self.policy_layer(c1)
         policy = self.softmax_layer(policy_layer)
