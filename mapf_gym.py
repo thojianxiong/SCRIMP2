@@ -104,6 +104,7 @@ class State(object):
                 goals[x, y] = agent_id
                 goals[old_x, old_y] = 0
                 break
+        self.get_heuri_map()
         return (x, y)
 
     def assign_new_goals_all(self):

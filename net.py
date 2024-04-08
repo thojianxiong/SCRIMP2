@@ -116,17 +116,17 @@ class SCRIMPNet(nn.Module):
         memories = torch.reshape(memories, (-1, num_agent, NetParameters.NET_SIZE // 2))
         h2 = torch.reshape(h2, (-1, num_agent, NetParameters.NET_SIZE))
 
-        if NetParameters.COMMUNICATE:
+        if NetParameters.DOUBLE and NetParameters.COMMUNICATE:
+            c1 = self.communication_layer(message)
+            c1 = torch.cat([c1, memories, h2], -1)
+            c2 = self.communication_layer(message)
+            c1 = torch.cat([c2, c1], -1)
+        elif NetParameters.COMMUNICATE:
             c1 = self.communication_layer(message)
             c1 = torch.cat([c1, memories, h2], -1)
         else:
             c1 = torch.cat([memories, h2], -1)
-        # print("Shape of c1:", c1.shape)
-        # print("Shape of fully_connected_4 weight:", self.fully_connected_4.weight.shape)
-            
-        if NetParameters.DOUBLE and NetParameters.COMMUNICATE:
-            c2 = self.communication_layer(message)
-            c1 = torch.cat([c2, c1], -1)
+
 
         c1 = F.relu(self.fully_connected_4(c1))
         policy_layer = self.policy_layer(c1)
