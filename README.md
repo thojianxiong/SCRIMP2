@@ -42,11 +42,6 @@ Python == 3.7
 `runner.py` - A single process for collecting training data. 
 
 
-## Other Links
-
-Fully trained SCRIMP model - https://www.dropbox.com/scl/fo/ekhxyt7gm575kfwaerwb5/h?rlkey=j3cdikwofz0zelj2oci9q97k8&dl=0
-
-
 ## Authors
 
 Tho Jian Xiong
