@@ -18,6 +18,7 @@ class EnvParameters:
     BLOCKING_COST = 0.0 if LIFELONG else -1      
     PRIMAL_MAZE = True
     MIN_DIST_NEW_GOAL = 5  # minimum distance between new goal and old goal
+    MAPS = False
 
 
 class TrainingParameters:
@@ -33,7 +34,7 @@ class TrainingParameters:
     VALID_COEF = 0.5
     BLOCK_COEF = 0.5
     N_EPOCHS = 10
-    N_ENVS = 16  # number of processes 8 for training 1 for debug
+    N_ENVS = 1  # number of processes 8 for training 1 for debug
     N_MAX_STEPS = 4e6  # maximum number of time steps used in training (1/2e7 for training,3e7 for debug)
     N_STEPS = 2 ** 8  # number of time steps per process per data collection (2**8 for training, 2**10 for debug)
     MINIBATCH_SIZE = int(2 ** 8)   # same as N_STEPS
@@ -42,7 +43,7 @@ class TrainingParameters:
 
 class NetParameters:
     NET_SIZE = 512
-    NUM_CHANNEL = 8  # number of channels of observations -[FOV_SIZE x FOV_SIZEx NUM_CHANNEL] 4 for without maps else 8
+    NUM_CHANNEL = 8 if EnvParameters.MAPS else 4  # number of channels of observations -[FOV_SIZE x FOV_SIZEx NUM_CHANNEL] 4 for without maps else 8
     GOAL_REPR_SIZE = 12
     VECTOR_LEN = 7  # [dx, dy, d total,extrinsic rewards,intrinsic reward, min dist respect to buffer, action t-1]
     N_POSITION = 1024  # maximum number of unique ID
@@ -52,6 +53,9 @@ class NetParameters:
     N_HEAD = 8
     D_K = 32
     D_V = 32
+    COMMUNICATE = False
+    DOUBLE = True
+    MESSAGE = 'EMPTY'  # 'EMPTY' or 'MAP' or 'XSDS' etc
 
 
 class TieBreakingParameters:
@@ -70,13 +74,13 @@ class IntrinsicParameters:
 class SetupParameters:
     SEED = 1234
     USE_GPU_LOCAL = False
-    USE_GPU_GLOBAL = True
+    USE_GPU_GLOBAL = False
     NUM_GPU = 1
 
 
 class RecordingParameters:
     RETRAIN = False
-    WANDB =  True
+    WANDB =  False
     TENSORBOARD = False
     TXT_WRITER =  True
     MAKE_GIF = True
@@ -111,6 +115,7 @@ all_args = {'N_AGENTS': EnvParameters.N_AGENTS, 'N_ACTIONS': EnvParameters.N_ACT
             'PRIMAL_MAZE': EnvParameters.PRIMAL_MAZE,
             'LIFELONG': EnvParameters.LIFELONG,
             'MIN_DIST_NEW_GOAL': EnvParameters.MIN_DIST_NEW_GOAL,
+            'MAPS': EnvParameters.MAPS,
             'lr': TrainingParameters.lr, 'GAMMA': TrainingParameters.GAMMA, 'LAM': TrainingParameters.LAM,
             'CLIPRANGE': TrainingParameters.CLIP_RANGE, 'MAX_GRAD_NORM': TrainingParameters.MAX_GRAD_NORM,
             'ENTROPY_COEF': TrainingParameters.ENTROPY_COEF,
@@ -126,6 +131,7 @@ all_args = {'N_AGENTS': EnvParameters.N_AGENTS, 'N_ACTIONS': EnvParameters.N_ACT
             'N_POSITION': NetParameters.N_POSITION,
             'D_MODEL': NetParameters.D_MODEL, 'D_HIDDEN': NetParameters.D_HIDDEN, 'N_LAYERS': NetParameters.N_LAYERS,
             'N_HEAD': NetParameters.N_HEAD, 'D_K': NetParameters.D_K, 'D_V': NetParameters.D_V,
+            'COMMUNICATE': NetParameters.COMMUNICATE, 'DOUBLE': NetParameters.DOUBLE, 'MESSAGE': NetParameters.MESSAGE,
             'DIST_FACTOR': TieBreakingParameters.DIST_FACTOR, 'K': IntrinsicParameters.K,
             'CAPACITY': IntrinsicParameters.CAPACITY, 'ADD_THRESHOLD': IntrinsicParameters.ADD_THRESHOLD,
             'N_ADD_INTRINSIC': IntrinsicParameters.N_ADD_INTRINSIC,

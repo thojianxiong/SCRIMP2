@@ -104,6 +104,7 @@ class State(object):
                 goals[x, y] = agent_id
                 goals[old_x, old_y] = 0
                 break
+        self.get_heuri_map()
         return (x, y)
 
     def assign_new_goals_all(self):
@@ -175,7 +176,10 @@ class State(object):
         if mag != 0:  # normalized
             dx = dx / mag
             dy = dy / mag
-        return [poss_map, goal_map, goals_map, obs_map, guide_map[0], guide_map[1], guide_map[2], guide_map[3]], [dx, dy, mag]
+        if EnvParameters.MAPS:
+            return [poss_map, goal_map, goals_map, obs_map, guide_map[0], guide_map[1], guide_map[2], guide_map[3]], [dx, dy, mag]
+        else:
+            return [poss_map, goal_map, goals_map, obs_map], [dx, dy, mag]
 
     def imag_xy_position(self, moved_position):
         """function used only by the tie-breaking strategy"""
@@ -974,9 +978,11 @@ class MAPFEnv(gym.Env):
         if mag != 0:  # normalized
             dx = dx / mag
             dy = dy / mag
-
-        # return [poss_map, goal_map, goals_map, obs_map], [dx, dy, mag]  #remove guide maps
-        return [poss_map, goal_map, goals_map, obs_map,guide_map[0],guide_map[1],guide_map[2],guide_map[3]], [dx, dy, mag]
+        if EnvParameters.MAPS:
+            return [poss_map, goal_map, goals_map, obs_map,guide_map[0],guide_map[1],guide_map[2],guide_map[3]], [dx, dy, mag]
+        else:
+            return [poss_map, goal_map, goals_map, obs_map], [dx, dy, mag]  #remove guide maps
+        
 
     def _reset(self, num_agents):
         """restart a new task"""
@@ -1208,6 +1214,11 @@ class MAPFEnv(gym.Env):
                         y = start * size
                         self.create_rectangle(x, y, size, size * (end - start), (1, 1, 1), permanent=True)
                         write = False
+                    if j == self.world.state.shape[1] - 1:
+                        x = i * size
+                        y = j * size
+                        self.create_rectangle(x, y, size, size, (.6, .6, .6), permanent=True)
+                        
         for agent in range(1, self.num_agents + 1):
             i, j = self.world.get_pos(agent)
             x = i * size
